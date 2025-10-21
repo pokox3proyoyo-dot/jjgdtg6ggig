@@ -553,11 +553,11 @@ a:hover { color: #fff;}
 
 // Эти URL-адреса будут обращаться к вашим Netlify Functions
 const SESSION_ID = 'secure_hax_chat_id_42'; 
-const NETLIFY_SEND_URL = '/.netlify/functions/send'; 
+ NETLIFY_SEND_URL = '/.netlify/functions/send'; 
 const NETLIFY_RECEIVE_URL = '/.netlify/functions/receive';
 let lastReceivedMessageId = 0; // Для отслеживания новых сообщений
 let pollingInterval = null; // Интервал для опроса (Polling)
-const POLLING_RATE = 2000; // Опрос каждые 2 секунды
+const POLLING_RATE = 5000; // Опрос каждые 2 секунды
 
 // =================================================================
 // ОСНОВНОЙ КОД JAVASCRIPT: КРИПТОГРАФИЯ, НАВИГАЦИЯ, МЕМЫ, МЕССЕНДЖЕР
