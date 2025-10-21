@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuristic Interface (Single File)</title>
+
+    <style>
+        /* Общие стили для футуристичности */
+        :root {
+            --main-color: #00e0ff; /* Неоновый голубой */
+            --accent-color: #ff0077; /* Розовый акцент */
+            --bg-dark: rgba(10, 20, 30, 0.95);
+            --plaque-bg: rgba(20, 30, 40, 0.85);
+            --border-glow: 0 0 10px var(--main-color);
+            --text-glow: 0 0 5px var(--main-color);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            background-color: #050a10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Фон и оверлей */
+        .background-image-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        .background-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.7) blur(2px); /* Затемнение и легкое размытие */
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Дополнительное затемнение */
+            z-index: -1;
+        }
+
+        /* Контент и плашка */
+        .content {
+            position: relative;
+            z-index: 1;
+            width: 90%;
+            max-width: 450px;
+            padding: 20px;
+        }
+
+        .futuristic-plaque {
+            background: var(--plaque-bg);
+            border: 2px solid var(--main-color);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: var(--border-glow), 0 0 20px rgba(0, 224, 255, 0.5);
+            animation: pulse-glow 3s infinite alternate; /* Анимация свечения */
+        }
+
+        @keyframes pulse-glow {
+            0% {
+                box-shadow: 0 0 5px var(--main-color), 0 0 15px rgba(0, 224, 255, 0.3);
+            }
+            100% {
+                box-shadow: 0 0 15px var(--main-color), 0 0 30px rgba(0, 224, 255, 0.6);
+            }
+        }
+
+        .plaque-title {
+            color: var(--main-color);
+            text-align: center;
+            margin-bottom: 25px;
+            text-shadow: var(--text-glow);
+            font-size: 1.5em;
+            border-bottom: 1px dashed rgba(0, 224, 255, 0.5);
+            padding-bottom: 10px;
+        }
+
+        /* Поле ввода */
+        .input-form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .plaque-label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+            color: white;
+            text-shadow: var(--text-glow);
+        }
+
+        #input-field {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--main-color);
+            border-radius: 5px;
+            padding: 12px;
+            color: white;
+            font-size: 1em;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 0 5px rgba(0, 224, 255, 0.5);
+        }
+
+        #input-field:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: inset 0 0 8px var(--accent-color), 0 0 15px var(--accent-color);
+        }
+
+        /* Кнопка "Отправить" */
+        .futuristic-button {background-color: var(--main-color);
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 5px;
+            padding: 12px 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 10px var(--main-color);
+            text-transform: uppercase;
+        }
+
+        .futuristic-button:hover {
+            background-color: var(--accent-color);
+            color: white;
+            box-shadow: 0 0 15px var(--accent-color), 0 0 30px rgba(255, 0, 119, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .futuristic-button:active {
+            transform: translateY(0);
+        }
+
+        /* Эффект мерцания на кнопке */
+        .futuristic-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: skewX(-20deg);
+            transition: all 0.7s ease;
+        }
+
+        .futuristic-button:hover::before {
+            left: 100%;
+        }
+
+        /* Сообщение о статусе */
+        .status-message {
+            margin-top: 20px;
+            text-align: center;
+            font-style: italic;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="background-image-container">
+        <img src="https://images.unsplash.com/photo-1549490349-86766da17769?fit=crop&w=1200&q=80" alt="Futuristic City" class="background-image">
+        <div class="overlay"></div> </div>
+
+    <div class="content">
+        <div class="futuristic-plaque">
+            <h1 class="plaque-title">Система ввода данных v3.1</h1>
+
+            <form id="telegram-form" class="input-form">
+                <label for="input-field" class="plaque-label">Напиши сюда что-нибудь</label>
+                <input type="text" id="input-field" name="message" placeholder="Введите сообщение..." required autocomplete="off">
+                <button type="submit" class="futuristic-button">
+                    <span class="button-text">Отправить</span>
+                    <span class="button-icon"></span>
+                </button>
+            </form>
+
+            <p id="status-message" class="status-message"></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('telegram-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Предотвращаем стандартную отправку формы
+
+            const form = event.target;
+            const inputField = document.getElementById('input-field');
+            const message = inputField.value.trim();
+            const statusMessage = document.getElementById('status-message');
+
+            if (message === "") {
+                statusMessage.textContent = 'Ошибка: Поле не может быть пустым.';
+                statusMessage.style.color = 'var(--accent-color)';
+                return;
+            }
+
+            // --- ВАШИ ЗНАЧЕНИЯ ---
+            const BOT_TOKEN = '8244951996:AAHNzSkHcfjJ_ppyeZfakXHuyulvWPDQpvU';
+            const CHAT_ID = '6548135669'; // Ваш личный Chat ID
+            // ----------------------
+
+            const textToSend = Новое сообщение с сайта:\n\n${message};
+            const url = https://api.telegram.org/bot${BOT_TOKEN}/sendMessage;
+
+            statusMessage.textContent = 'Отправка данных...';
+            statusMessage.style.color = 'var(--main-color)';
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({chat_id: CHAT_ID,
+                    text: textToSend
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.ok) {
+                    statusMessage.textContent = '✅ Сообщение успешно отправлено!';
+                    statusMessage.style.color = '#4CAF50'; // Зеленый
+                    inputField.value = ''; // Очищаем поле
+                } else {
+                    console.error('Telegram API Error:', data);
+                    statusMessage.textContent = ❌ Ошибка отправки: ${data.description || 'Неизвестная ошибка API'};
+                    statusMessage.style.color = 'var(--accent-color)';
+                }
+            })
+            .catch(error => {
+                console.error('Fetch Error:', error);
+                statusMessage.textContent = '❌ Ошибка сети при отправке.';
+                statusMessage.style.color = 'var(--accent-color)';
+            });
+        });
+    </script>
+</body>
+</html>
