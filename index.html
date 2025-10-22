@@ -1,665 +1,1275 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S.H.A.C. - Secure Hax Anonymous Chat</title>
-    <script src="https://unpkg.com/tweetnacl@1.0.3/nacl-fast.js"></script>
-    <script src="https://unpkg.com/tweetnacl-util@0.15.1/nacl-util.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Secure Hax Chat 🔐</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #121212;
-            color: #E0E0E0;
-        }
+<script src="nacl.min.js"></script>
+<script src="nacl-util.min.js"></script>
 
-        #container {
-            width: 100%;
-            max-width: 600px;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-            background-color: #1E1E1E;
-        }
+<style>
+/* ==================================== */
+/* Базовые стили и общие компоненты */
+/* ==================================== */
+:root {
+  --bg-color: linear-gradient(135deg, #2c003e, #5a006a, #ff5aab);
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --text-color: #f5f5f5;
+  --header-color: #ffd6f7;
+  --accent-color: #ff5aab;
+  --button-gradient: linear-gradient(90deg, #ff5aab, #8a2be2);
+  --success-color: #4CAF50;
+  --self-msg-bg: #8a2be2; /* Фиолетовый */
+  --peer-msg-bg: #4CAF50; /* Зеленый */
+}
 
-        #chat-window {
-            flex-grow: 1;
-            padding: 10px;
-            overflow-y: auto;
-            border-bottom: 1px solid #333;
-        }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-color);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--text-color);
+  margin:0; padding:0;
+  transition: background 0.3s ease;
+  position: relative;
+}
 
-        #input-area {
-            display: flex;
-            padding: 10px;
-            background-color: #2D2D2D;
-        }
+h1 { margin-top: 24px; font-size: 2rem; color: var(--header-color); text-shadow: 0 2px 8px rgba(0,0,0,0.5);}
+.container { width: 90%; max-width: 800px; margin: 16px auto; padding-bottom: 50px; z-index: 100;}
+.card { background: var(--glass-bg); border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); backdrop-filter: blur(4px); transition: transform 0.2s, box-shadow 0.2s;}
+.card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,0,0,0.6);}
+textarea, input { width: 100%; box-sizing: border-box; margin: 6px 0; padding: 10px; border-radius: 10px; border: none; background: rgba(255,255,255,0.2); color: #fff; font-family: 'Roboto Mono', monospace; font-size: 0.95rem;}
+button { background: var(--button-gradient); color: #fff; border: none; border-radius: 12px; padding: 12px 18px; margin-top: 8px; cursor: pointer; font-weight: 600; transition: transform 0.2s, box-shadow 0.3s, filter 0.2s; white-space: nowrap;}
+button:hover { background: linear-gradient(90deg, #ff75c4, #a64ddb); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.5); filter: brightness(1.1);}
+button:active { transform: translateY(0); box-shadow: 0 4px 12px rgba(0,0,0,0.4);}
+button:disabled { background: #555; cursor: not-allowed; opacity: 0.7;}
+pre { background: var(--glass-bg); padding: 10px; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; color: #fff; font-family: 'Roboto Mono', monospace;}
+.row { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+.flex-col { display:flex; flex-direction:column;}
+/* Обновленный футер для размещения Sans */
+footer {
+  width:100%;
+  text-align:center;
+  margin:24px 0;
+  padding-bottom: 20px;
+  position: relative;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.footer-links {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end; /* Выравнивание элементов по низу */
+    gap: 15px;
+    position: relative; /* Для позиционирования Sans */
+    width: auto;
+}
+a { color: var(--accent-color); text-decoration: none; transition: color 0.2s;}
+a:hover { color: #fff;}
 
-        #message-input {
-            flex-grow: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            background-color: #3C3C3C;
-            color: #E0E0E0;
-            resize: none;
-            outline: none;
-            margin-right: 10px;
-        }
+/* ==================================== */
+/* САНС / ИНТЕРАКТИВ */
+/* ==================================== */
+#sans-image {
+  /* Фиксированное, незаметное место: в футере, рядом с Телеграмом */
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: transform 0.2s ease-out;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); /* Добавим легкое свечение для видимости */
+  background-color: rgba(255, 255, 255, 0.1); /* Легкий фон */
+  margin-bottom: -15px; /* Поднимем его к Telegram иконке */
+}
 
-        #send-button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            background-color: #5E5E5E;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
+#sans-image:hover {
+  transform: scale(1.1) rotate(5deg);
+  filter: none; /* При наведении - яркий Sans! */
+}
 
-        #send-button:hover:not(:disabled) {
-            background-color: #7A7A7A;
-        }
-        
-        #send-button:disabled {
-            background-color: #333;
-            cursor: not-allowed;
-        }
+#socks-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  padding: 20px 40px;
+  background: rgba(0, 0, 0, 0.9);
+  color: #fff000; /* Желтый цвет для текста */
+  font-size: 2.5rem;
+  font-family: 'Roboto Mono', monospace;
+  border: 5px solid #ff5aab;
+  box-shadow: 0 0 30px #ff5aab;
+  border-radius: 10px;
+  z-index: 3000;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  pointer-events: none;
+  text-align: center;
+}
+#socks-message.active {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+}
 
-        /* СООБЩЕНИЯ */
-        .msg-container {
-            display: flex;
-            margin-bottom: 10px;
-            word-wrap: break-word;
-            word-break: break-all;
-        }
+/* Стили для Конфетти (Изменены для вылета с боков) */
+#confetti-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2500;
+  overflow: hidden;
+}
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  opacity: 0;
+  animation-duration: 3s;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(.17,.67,.83,.67);
+}
 
-        .msg-peer {
-            justify-content: flex-start;
-        }
-        
-        .msg-peer .msg-bubble {
-            background-color: #2A482E; /* Зеленый */
-            color: #E0E0E0;
-        }
+/* Анимации для вылета с боков */
+@keyframes fall-left {
+  0% { left: 0; top: 50%; transform: translate(-100%, -50%) rotate(0deg); opacity: 1; }
+  100% { left: 50%; top: 100vh; transform: translate(-50%, 0) rotate(720deg); opacity: 0; }
+}
+@keyframes fall-right {
+  0% { right: 0; top: 50%; transform: translate(100%, -50%) rotate(0deg); opacity: 1; }
+  100% { right: 50%; top: 100vh; transform: translate(50%, 0) rotate(-720deg); opacity: 0; }
+}
 
-        .msg-self {
-            justify-content: flex-end;
-        }
-        
-        .msg-self .msg-bubble {
-            background-color: #3A3A5E; /* Синий */
-            color: #E0E0E0;
-        }
+/* ==================================== */
+/* Остальные стили */
+/* ==================================== */
 
-        .msg-bubble {
-            max-width: 70%;
-            padding: 8px 12px;
-            border-radius: 15px;
-            font-size: 14px;
-            position: relative;
-        }
-        
-        .msg-time {
-            display: block;
-            font-size: 10px;
-            color: rgba(224, 224, 224, 0.6);
-            margin-top: 2px;
-            text-align: right;
-        }
+#menu-btn {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 2000;
+  width: auto;
+  min-width: 90px;
+  height: 50px;
+  font-size: 1.1rem;
+  padding: 0 15px;
+  border-radius: 25px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  color: var(--header-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#nav-menu {
+  position: fixed;
+  top: 70px;
+  left: 15px;
+  z-index: 1999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+  transform: translateX(-150%);
+  opacity: 0;
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+#nav-menu.active {
+  transform: translateX(0);
+  opacity: 1;
+}
+#nav-menu button {
+  width: 150px;
+  padding: 10px 15px;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+  border-radius: 10px;
+}
+#nav-menu button.active {
+  background: var(--button-gradient);
+}
+#nav-menu button:hover {
+  transform: none;
+  box-shadow: 0 0 10px var(--accent-color);
+}
+.page {
+  display: none;
+  width: 100%;
+  animation: fadeIn 0.5s ease-out;
+}
+.page.active {
+  display: block;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+#home-page {
+    background:
+        radial-gradient(circle 400px at 50% 10%, rgba(255, 90, 171, 0.1), transparent),
+        radial-gradient(circle 300px at 80% 90%, rgba(138, 43, 226, 0.1), transparent),
+        repeating-linear-gradient(0deg, #2c003e, #2c003e 1px, transparent 1px, transparent 100px),
+        repeating-linear-gradient(90deg, #2c003e, #2c003e 1px, transparent 1px, transparent 100px);
+    background-color: #330044;
+    padding-top: 20px;
+    text-align: center;
+}
+#home-page h2 { color: var(--accent-color); font-size: 1.5rem; border-bottom: 2px solid var(--accent-color); padding-bottom: 5px; display: inline-block;}
+#home-page p { line-height: 1.6; text-align: left; margin-bottom: 20px;}
+.skeleton-joke {
+    background: var(--glass-bg);
+    padding: 15px;
+    border-left: 5px solid var(--accent-color);
+    font-style: italic;
+    color: var(--header-color);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    text-align: left;
+}
+.skeleton-joke strong { color: lime; }
+.img-grid { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-top: 30px;}
+.img-hacker {
+  width: 150px;
+  height: 150px;
+  background: #333;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+  transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 1.2rem;
+  overflow: hidden;
+  position: relative;
+}
+.img-hacker i {
+    font-size: 3rem;
+    color: var(--success-color);
+    text-shadow: 0 0 10px var(--success-color);
+    z-index: 2;
+}
+.img-hacker span {
+    position: absolute;
+    bottom: 5px;
+    font-size: 0.9rem;
+    color: #fff;
+    z-index: 2;
+}
+.img-hacker:before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1;
+}
+.img-hacker:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px var(--accent-color);
+}
+/* *** ИЗМЕНЕНИЕ СТИЛЕЙ ДЛЯ МЕМ-РЕЖИМА *** */
+/* Убрать все элементы, кроме фона и самого MEME_PAGE_CONTENT */
+.meme-mode > .container,
+.meme-mode #menu-btn,
+.meme-mode #nav-menu,
+.meme-mode footer {
+    display: none;
+}
+.meme-mode {
+    background: black !important;
+    transition: background 0.1s;
+}
+/* *** КОНЕЦ ИЗМЕНЕНИЙ СТИЛЕЙ *** */
 
-        /* ТОСТЫ И УВЕДОМЛЕНИЯ */
-        #toast-container {
-            position: fixed;
-            bottom: 70px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-        }
+#meme-page-content {
+    /* Стиль для текста, который добавляется в body */
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: green;
+    font-size: 2rem;
+    font-family: 'Roboto Mono', monospace;
+    z-index: 1000;
+    text-shadow: 0 0 10px green, 0 0 20px green;
+    overflow: hidden;
+    pointer-events: none;
+    padding: 20px;
+}
+.meme-bg-text {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: red;
+    opacity: 0.1;
+    font-size: 10vmin;
+    line-height: 1.2;
+    pointer-events: none;
+    font-family: 'Roboto Mono', monospace;
+    z-index: 999;
+    user-select: none;
+    padding: 10px;
+}
+#toast-container { position: fixed; top:20px; right:20px; z-index:9999;}
+.toast { background: rgba(255,255,255,0.2); color: #fff; padding: 10px 16px; margin-top: 8px; border-radius: 10px; box-shadow:0 4px 12px rgba(0,0,0,0.5); backdrop-filter: blur(3px); font-weight:500; transition: opacity 0.3s ease, transform 0.3s ease; opacity:0; transform: translateY(-20px);}
 
-        .toast {
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            margin-top: 10px;
-            text-align: center;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
+/* ------------------------------------- */
+/* НОВЫЕ СТИЛИ ДЛЯ РАБОЧЕГО ЧАТА */
+/* ------------------------------------- */
+#live-chat-window {
+    height: 400px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+    padding: 10px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+}
+.msg-container {
+    display: flex;
+    margin-bottom: 8px;
+    word-break: break-word;
+    word-wrap: break-word;
+}
+.msg-bubble {
+    max-width: 80%;
+    padding: 8px 12px;
+    border-radius: 18px;
+    font-size: 0.9rem;
+    position: relative;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+.msg-peer {
+    justify-content: flex-start;
+}
+.msg-peer .msg-bubble {
+    background-color: var(--peer-msg-bg);
+    border-bottom-left-radius: 4px;
+}
+.msg-self {
+    justify-content: flex-end;
+}
+.msg-self .msg-bubble {
+    background-color: var(--self-msg-bg);
+    border-bottom-right-radius: 4px;
+}
+.msg-time {
+    display: block;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 3px;
+    text-align: right;
+    font-family: 'Roboto Mono', monospace;
+}
+#message-input-area {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+#message-input-area textarea {
+    flex-grow: 1;
+    min-height: 40px;
+    resize: none;
+    margin: 0;
+}
+#message-input-area button {
+    width: 120px;
+    min-width: 100px;
+    height: 60px;
+    margin: 0;
+}
 
-        .toast.show {
-            opacity: 1;
-        }
-
-        #status-bar {
-            padding: 5px 10px;
-            background-color: #2D2D2D;
-            font-size: 12px;
-            color: #9E9E9E;
-            border-top: 1px solid #333;
-            text-align: center;
-        }
-
-        /* Настройки (скрыты по умолчанию) */
-        #settings-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-
-        #settings-box {
-            background-color: #1E1E1E;
-            padding: 20px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
-        }
-
-        #settings-box label, #settings-box h2 {
-            display: block;
-            margin-top: 10px;
-            margin-bottom: 5px;
-            color: #E0E0E0;
-        }
-
-        #settings-box input, #settings-box button {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #3C3C3C;
-            border-radius: 5px;
-            background-color: #3C3C3C;
-            color: #E0E0E0;
-            box-sizing: border-box;
-        }
-        
-        #settings-box textarea {
-            width: 100%;
-            height: 100px;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #3C3C3C;
-            border-radius: 5px;
-            background-color: #3C3C3C;
-            color: #E0E0E0;
-            box-sizing: border-box;
-            resize: vertical;
-        }
-
-        #settings-box button {
-            background-color: #007BFF;
-            cursor: pointer;
-        }
-
-        #settings-box button:hover {
-            background-color: #0056b3;
-        }
-        
-        .warning {
-            color: #FF6347;
-            font-weight: bold;
-        }
-        
-        .info {
-            color: #6495ED;
-            font-size: 12px;
-        }
-
-    </style>
+</style>
 </head>
 <body>
 
-<div id="container">
-    <div id="chat-window">
+<button id="menu-btn" onclick="toggleMenu()">≡ Menu</button>
+<nav id="nav-menu">
+  <button data-page="home" class="active">Главная</button>
+  <button data-page="chat">Чат</button>
+  <button data-page="meme">Мем</button>
+</nav>
+
+<div class="container">
+  <div id="home-page" class="page active">
+    <h1>Добро пожаловать в Secure Hax Chat 🔐</h1>
+
+    <div id="socks-message">Я не убрал носки!</div>
+    <div id="confetti-container"></div>
+
+    <div class="skeleton-joke">
+        "Почему Скелет не пользуется небезопасным чатом? Потому что у него нет кишок, чтобы делиться ими! <strong>Secure Hax</strong> – чат, которому можно доверить свои кости."
+    </div>
+
+    <div class="card">
+      <h2>🛡️ Защита Ваших Данных</h2>
+      <p>
+        В мире, где цифровая конфиденциальность подвергается постоянной угрозе, криптографическая защита становится не роскошью, а необходимостью. Этот инструмент использует <strong>высоконадежную асимметричную криптографию (TweetNaCl)</strong> для обеспечения того, что ваши сообщения доступны только вам и вашему собеседнику.
+      </p>
+
+      <h3>Почему это безопасно?</h3>
+      <p>
+        Ваши ключи генерируются прямо в браузере и могут быть сохранены в **локальном хранилище (localStorage)**. Мы не храним ваши приватные ключи на сервере, а это значит, что никто, включая нас, не имеет к ним доступа.
+      </p>
+
+      <h3>Как начать?</h3>
+      <p>
+        Перейдите в раздел "Чат". Сгенерируйте пару ключей. Обменяйтесь **публичным** ключом с вашим собеседником, чтобы начать безопасный обмен информацией.
+      </p>
+
+      <div class="img-grid">
+        <div class="img-hacker">
+          <i class="fas fa-key"></i>
+          <span>Ключи</span>
         </div>
-    <div id="input-area">
-        <textarea id="message-input" placeholder="Введите сообщение..."></textarea>
-        <button id="send-button" disabled>Отправить</button>
+        <div class="img-hacker">
+          <i class="fas fa-lock-open"></i>
+          <span>Обмен</span>
+        </div>
+        <div class="img-hacker">
+          <i class="fas fa-shield-alt"></i>
+          <span>Защита</span>
+        </div>
+      </div>
     </div>
-    <div id="status-bar">
-        <span id="connection-status">
-            🔒 Ожидание ключей...
-        </span> 
-        | 
-        <span id="settings-link" style="cursor: pointer; text-decoration: underline;">
-            [Настройки]
-        </span>
+
+    <div class="card">
+      <h2>🗂️ Наша Философия Криптографии</h2>
+      <p>
+        Мы верим, что безопасность должна быть простой. Наш код — открытый, и вы можете проверить его самостоятельно (используется только TweetNaCl, который давно признан стандартом). Мы не усложняем процесс: сгенерировал ключи, обменялся публичным — и ты уже в крипто-бункере. **Никаких бэкдоров, только скелеты и надежная математика.**
+      </p>
     </div>
-</div>
 
-<div id="settings-overlay">
-    <div id="settings-box">
-        <h2>Настройки S.H.A.C.</h2>
-        
-        <p class="warning">
-            НЕ закрывайте окно, пока не сохраните ключи! Если закроете, ключи будут потеряны.
-        </p>
-
-        <label for="peer-pub-input">Публичный ключ собеседника (Peer Public Key):</label>
-        <textarea id="peer-pub-input"></textarea>
-        <p class="info">
-            Получите этот ключ у вашего собеседника.
-        </p>
-
-        <label for="my-priv-input">Ваш СЕКРЕТНЫЙ ключ (My Secret Key):</label>
-        <textarea id="my-priv-input"></textarea>
-        <p class="info">
-            Вставьте сюда свой приватный ключ, который вы получили ранее. Если он пуст, сгенерируйте новый.
-        </p>
-
-        <label for="my-pub-display">Ваш ПУБЛИЧНЫЙ ключ (для отправки собеседнику):</label>
-        <textarea id="my-pub-display" readonly></textarea>
-        <p class="info">
-            Скопируйте этот ключ и отправьте его собеседнику.
-        </p>
-
-        <button id="generate-key-button">Сгенерировать новую пару ключей</button>
-        <button id="save-settings-button">Сохранить и Закрыть</button>
+    <div class="skeleton-joke">
+        "Секрет хорошего шифрования? Кости должны быть крепкими, а алгоритм - непробиваемым! <strong>(Это не сарказм, это TweetNaCl.)</strong>"
     </div>
+
+    <div class="card">
+        <h2>✨ Что дальше?</h2>
+        <p>
+            Мы постоянно работаем над улучшением интерфейса. В будущем планируем добавить функции обмена файлами с шифрованием и поддержку протокола SOCKS. Но пока что, наслаждайтесь самым безопасным и немного странным чатом в Интернете!
+        </p>
+    </div>
+
+    <div class="skeleton-joke">
+        "Хакер-скелет зашел в чат. Ему говорят: 'Привет!'. А он в ответ: 'Просто **кости**!'"
+    </div>
+
+  </div>
+
+<section id="chat-page" class="page">
+    <h1>Secure Hax Chat</h1>
+    <p>Безопасное end-to-end шифрование. Ваши ключи хранятся только локально.</p>
+    
+    <div class="card">
+        <h2>Live Chat (<span id="chat-status">🔒 Нет ключей</span>)</h2>
+        <div id="live-chat-window">
+            <div style="text-align:center; color: var(--accent-color); padding: 20px;">
+                🔑 Сгенерируйте и импортируйте ключи ниже, чтобы начать общение.
+            </div>
+        </div>
+        <div id="message-input-area">
+            <textarea id="liveMessageInput" rows="2" placeholder="Введите сообщение..." disabled></textarea>
+            <button id="sendLiveBtn" disabled>Отправить</button>
+        </div>
+    </div>
+    
+    <div class="card" id="card-my-keys">
+        <h2>1️⃣ Твой ключ</h2>
+        <div class="row">
+            <button id="gen">Сгенерировать пару ключей</button>
+            <button id="resetBtn" class="small">Сбросить все ключи</button>
+        </div>
+
+        <div id="pubArea" style="display: none; flex-direction: column;">
+            <label>Твой публичный ключ (Base64)</label>
+            <textarea id="myPub" rows="3" readonly placeholder="Сгенерируйте ключи"></textarea>
+            <div class="row" style="margin-top: 5px;">
+                <button id="copyPub" class="small">Копировать публичный ключ</button>
+            </div>
+            <div class="helper">
+                Отпечаток: <code id="myFp" style="color:#fff; background:transparent; font-family:monospace;">Нет ключа</code>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" id="card-peer">
+        <h2>2️⃣ Публичный ключ собеседника</h2>
+        <label>Вставьте публичный ключ собеседника (Base64)</label>
+        <textarea id="peerPub" rows="3" placeholder="Вставьте публичный ключ"></textarea>
+        <div class="row">
+            <button id="importPeer" class="small" disabled>Импортировать</button>
+            </div>
+        <div class="helper">
+            Отпечаток собеседника: <code id="peerFp" style="color:#fff; background:transparent; font-family:monospace;">Нет ключа</code>
+        </div>
+    </div>
+
+    <div class="card" id="card-encrypt">
+        <h2>3️⃣ Ручное Шифрование</h2>
+        <label>Сообщение для шифрования</label>
+        <textarea id="plain" rows="4" placeholder="Введите сообщение"></textarea>
+        <div class="row">
+            <button id="encryptBtn" class="small" disabled>Зашифровать</button>
+            <button id="copyCipher" class="small" disabled>Копировать шифртекст</button>
+        </div>
+        <label style="margin-top:10px;">Зашифрованная строка</label>
+        <textarea id="cipherout" rows="4" readonly></textarea>
+    </div>
+
+    <div class="card" id="card-decrypt">
+        <h2>4️⃣ Ручное Дешифрование</h2>
+        <label>Вставьте шифртекст</label>
+        <textarea id="cipherin" rows="4" placeholder="Вставьте зашифрованную строку"></textarea>
+        <div class="row">
+            <button id="decryptBtn" class="small" disabled>Дешифровать</button>
+        </div>
+        <label style="margin-top:10px;">Расшифрованный текст</label>
+        <textarea id="plainout" rows="4" readonly></textarea>
+    </div>
+</section>
+
+  <div id="meme-page" class="page"></div>
 </div>
 
 <div id="toast-container"></div>
+<footer>
+    <div class="footer-links">
+        <img id="sans-image"
+             src="https://avatanplus.com/files/resources/mid/57b39ece5502b15695a4560c.png"
+             onclick="activateSansMeme(event)">
+        <a href="https://t.me/securehaxchat" target="_blank" title="Telegram">
+            <i class="fab fa-telegram fa-2x"></i>
+        </a>
+    </div>
+    <small style="margin-top: 10px;">
+        © 2025 Secure Hax Inc. | <a href="#">Политика конфиденциальности</a>
+    </small>
+</footer>
 
 <script>
-    // =================================================================
-    // 1. ГЛОБАЛЬНЫЕ КОНСТАНТЫ И ПЕРЕМЕННЫЕ (ОБНОВЛЕНО ПОД GOOGLE APPS SCRIPT)
-    // =================================================================
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP15XqdsbgS6OSd76rSf8T0kg4SJ4z7fBwxiBNfGs7RIVWLowvQ6wx3bmwcugPR3Xs/exec'; 
-    const SESSION_ID = 'secure_hax_chat_id_42'; // Идентификатор для разделения чатов в таблице
-    const POLLING_RATE = 5000; // Опрос каждые 5 секунд (Надежно для Google Sheets)
+// =================================================================
+// 1. КОНСТАНТЫ И ПЕРЕМЕННЫЕ (С Google Apps Script URL)
+// =================================================================
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP15XqdsbgS6OSd76rSf8T0kg4SJ4z7fBwxiBNfGs7RIVWLowvQ6wx3bmwcugPR3Xs/exec'; 
+const SESSION_ID = 'secure_hax_chat_id_42'; 
+const POLLING_RATE = 5000; // Опрос каждые 5 секунд (надежно для Sheets)
+const MAX_LEN = 5000;
+const PUB_LEN = 32;
+const NONCE_LEN = 24;
 
-    // Ключи и состояние
-    let myKeyPair = null; // Моя пара ключей (публичный и приватный)
-    let peerPubUint8 = null; // Публичный ключ собеседника (в виде Uint8Array)
-    let pollingInterval = null; // Интервал для опроса (Polling)
-    
-    // Для отслеживания полученных ID сообщений (чтобы не дублировать)
-    const receivedMessageIds = new Set();
-    
-    // Элементы DOM
-    const chatWindow = document.getElementById('chat-window');
-    const messageInput = document.getElementById('message-input');
-    const sendButton = document.getElementById('send-button');
-    const statusBar = document.getElementById('connection-status');
-    const settingsOverlay = document.getElementById('settings-overlay');
-    const peerPubInput = document.getElementById('peer-pub-input');
-    const myPrivInput = document.getElementById('my-priv-input');
-    const myPubDisplay = document.getElementById('my-pub-display');
+let myKeyPair = null; // { publicKey: Uint8Array, secretKey: Uint8Array }
+let peerPubUint8 = null;
+let pollingInterval = null; 
+const receivedMessageIds = new Set(); // Для отслеживания полученных ID сообщений
+
+// DOM Elements
+const chatWindow = document.getElementById('live-chat-window');
+const liveMessageInput = document.getElementById('liveMessageInput');
+const sendLiveBtn = document.getElementById('sendLiveBtn');
+const chatStatusEl = document.getElementById('chat-status');
+
+// Элементы из оригинального HTML
+const genBtn = document.getElementById('gen');
+const myPubEl = document.getElementById('myPub');
+const myFpEl = document.getElementById('myFp');
+const copyPubBtn = document.getElementById('copyPub');
+const resetBtn = document.getElementById('resetBtn'); 
+const pubArea = document.getElementById('pubArea');
+
+const peerPubEl = document.getElementById('peerPub');
+const importPeerBtn = document.getElementById('importPeer');
+const peerFpEl = document.getElementById('peerFp');
+
+const plainEl = document.getElementById('plain');
+const encryptBtn = document.getElementById('encryptBtn');
+const cipherOutEl = document.getElementById('cipherout');
+const copyCipherBtn = document.getElementById('copyCipher');
+
+const cipherInEl = document.getElementById('cipherin');
+const decryptBtn = document.getElementById('decryptBtn');
+const plainOutEl = document.getElementById('plainout');
+
+const toastContainer = document.getElementById('toast-container'); // Объявлен в глобальной области
+const SANS_IMAGE = document.getElementById('sans-image');
+const SANS_MESSAGE = document.getElementById('socks-message');
+const CONFETTI_CONTAINER = document.getElementById('confetti-container');
 
 
-    // =================================================================
-    // 2. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (Криптография, Base64)
-    // =================================================================
+// =================================================================
+// 2. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (Криптография, Base64, UI)
+// =================================================================
+const util = nacl.util;
+const encodeB64 = util.encodeBase64;
+const decodeB64 = util.decodeBase64;
+const encodeUTF8 = util.encodeUTF8;
+const decodeUTF8 = util.decodeUTF8;
 
-    // Хелперы для Base64 (используют nacl.util)
-    function encodeB64(bytes) {
-        return nacl.util.encodeBase64(bytes);
-    }
-    
-    function decodeB64(str) {
+async function sha256hex(u8){
+    if (typeof crypto === 'undefined' || !crypto.subtle) return 'Crypto API not available';
+    const hash = await crypto.subtle.digest('SHA-256', u8);
+    return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+
+function showToast(msg, ms=2600){
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    toastContainer.appendChild(t);
+    // animate in
+    requestAnimationFrame(()=>{ t.style.opacity='1'; t.style.transform='translateY(0)'; });
+    setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateY(-10px)'; t.addEventListener('transitionend', ()=> t.remove()); }, ms);
+  }
+
+function copyToClipboard(txt){
+    if(!txt) { showToast('Нет текста для копирования'); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(()=> showToast('Скопировано в буфер обмена')).catch(()=>{
+            try {
+                const tempEl = document.createElement('textarea');
+                tempEl.value = txt;
+                document.body.appendChild(tempEl);
+                tempEl.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempEl);
+                showToast('Скопировано в буфер обмена');
+            } catch(e) {
+                showToast('Ошибка копирования');
+            }
+        });
+    } else {
         try {
-            return nacl.util.decodeBase64(str);
-        } catch (e) {
-            console.error("Base64 Decode Error:", e);
-            showToast('❌ Ошибка декодирования ключа Base64. Проверьте ключ.', 3000);
-            return null;
+            const tempEl = document.createElement('textarea');
+            tempEl.value = txt;
+            document.body.appendChild(tempEl);
+            tempEl.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempEl);
+            showToast('Скопировано в буфер обмена');
+        } catch(e) {
+            showToast('Ошибка копирования');
         }
     }
+}
 
-    // =================================================================
-    // 3. ЛОГИКА МЕССЕНДЖЕРА
-    // =================================================================
+// Отображает сообщение в окне чата
+function displayChatMessage(text, type, timestamp = new Date()) {
+    const msgContainer = document.createElement('div');
+    msgContainer.className = `msg-container ${type}`;
 
-    // Отображает сообщение в окне чата
-    function displayMessengerMessage(text, type, timestamp = new Date()) {
-        const msgContainer = document.createElement('div');
-        msgContainer.className = `msg-container ${type}`;
-
-        const msgBubble = document.createElement('div');
-        msgBubble.className = 'msg-bubble';
-        
-        const timeFormatted = timestamp.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        
-        msgBubble.innerHTML = `<span>${text}</span><span class="msg-time">${timeFormatted}</span>`;
-
-        msgContainer.appendChild(msgBubble);
-        chatWindow.appendChild(msgContainer);
-        chatWindow.scrollTop = chatWindow.scrollHeight; // Прокрутка вниз
-    }
-
-    // Инициализация (запуск) Polling
-    function startPollingForMessages() {
-        if (pollingInterval) return; // Уже запущен
-
-        const poll = () => {
-            // Проверка готовности к шифрованию/дешифрованию
-            if (!myKeyPair || !peerPubUint8) {
-                clearInterval(pollingInterval);
-                pollingInterval = null;
-                statusBar.textContent = '🔒 Ожидание ключей...';
-                return;
-            }
-
-            // Запрос на Google Apps Script
-            fetch(`${APPS_SCRIPT_URL}?sessionId=${SESSION_ID}`) 
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Server returned error: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    statusBar.textContent = `✅ Подключено. ID: ${encodeB64(myKeyPair.publicKey).slice(0, 10)}`;
-                    sendButton.disabled = false;
-
-                    if (data.ok && data.messages.length > 0) {
-                        const mySenderId = encodeB64(myKeyPair.publicKey).slice(0, 10);
-                        
-                        data.messages.forEach(msg => {
-                            // 1. Проверяем, было ли сообщение уже получено
-                            if (receivedMessageIds.has(msg.id)) {
-                                return; // Пропускаем уже известное сообщение
-                            }
-                            
-                            // 2. Отмечаем его как полученное
-                            receivedMessageIds.add(msg.id); 
-
-                            // 3. Обрабатываем, если это сообщение не от нас
-                            // Сообщения от себя не отображаем, так как мы их уже показали при отправке.
-                            if (msg.sender !== mySenderId) { 
-                                receiveMessageFromServer(msg.encryptedMessage, msg.timestamp);
-                            } 
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Polling Error:', error);
-                    statusBar.textContent = '❌ Ошибка сети/бэкенда. Повтор через 5с...';
-                    sendButton.disabled = true;
-                });
-        };
-
-        // Запускаем Polling и выполняем первый опрос
-        pollingInterval = setInterval(poll, POLLING_RATE); 
-        poll(); 
-    }
+    const msgBubble = document.createElement('div');
+    msgBubble.className = 'msg-bubble';
     
-    // Получение и дешифровка сообщения с сервера
-    function receiveMessageFromServer(encryptedText, timestampString) {
-        try {
-            const encryptedBytes = decodeB64(encryptedText);
-            if (!encryptedBytes) return;
+    const timeFormatted = timestamp.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    
+    msgBubble.innerHTML = `<span>${text}</span><span class="msg-time">${timeFormatted}</span>`;
 
-            // Дешифровка
-            // Используем мой приватный и публичный ключ собеседника (peerPubUint8)
-            const decryptedBytes = nacl.box.open.easy(
-                encryptedBytes, 
-                peerPubUint8, 
-                myKeyPair.secretKey 
-            );
+    msgContainer.appendChild(msgBubble);
+    chatWindow.appendChild(msgContainer);
+    chatWindow.scrollTop = chatWindow.scrollHeight; // Прокрутка вниз
+}
 
-            if (!decryptedBytes) {
-                // Если дешифровка не удалась, это либо:
-                // 1. Нам отправили мусор.
-                // 2. Ошибка в наших ключах (чаще всего)
-                throw new Error("Decryption failed. Check keys.");
-            }
-
-            const decryptedText = nacl.util.encodeUTF8(decryptedBytes);
-            
-            // Преобразуем строку ISO в объект Date
-            const time = new Date(timestampString); 
-            
-            // Отображение
-            displayMessengerMessage(decryptedText, 'msg-peer', time);
-            showToast('🔓 Получено и расшифровано сообщение!', 1500);
-
-        } catch (e) {
-            console.error("Decryption or processing error:", e);
-            displayMessengerMessage(`[ОШИБКА ДЕШИФРОВКИ] Проверьте ключи.`, 'msg-peer');
-            showToast('❌ Ошибка дешифровки! Проверьте ключи.', 3000);
-        }
+function updateChatStatus() {
+    if (myKeyPair && peerPubUint8) {
+        chatStatusEl.textContent = `✅ Подключено. ID: ${encodeB64(myKeyPair.publicKey).slice(0, 10)}`;
+        sendLiveBtn.disabled = false;
+        liveMessageInput.disabled = false;
+    } else if (myKeyPair) {
+        chatStatusEl.textContent = '⚠️ Нет ключа собеседника. Чат заблокирован.';
+        sendLiveBtn.disabled = true;
+        liveMessageInput.disabled = true;
+    } else {
+        chatStatusEl.textContent = '🔒 Нет ключей. Сгенерируйте.';
+        sendLiveBtn.disabled = true;
+        liveMessageInput.disabled = true;
     }
+}
 
-    // Отправка и шифровка сообщения на сервер
-    function sendMessengerMessage() {
+// =================================================================
+// 3. ОСНОВНАЯ ЛОГИКА ЧАТА (Polling, Send/Receive)
+// =================================================================
+
+function startPollingForMessages() {
+    if (pollingInterval) return; // Уже запущен
+
+    const poll = () => {
         if (!myKeyPair || !peerPubUint8) {
-            showToast('🔒 Сначала настройте ключи!', 2000);
+            clearInterval(pollingInterval);
+            pollingInterval = null;
+            updateChatStatus();
             return;
         }
 
-        const message = messageInput.value.trim();
-        if (!message) return;
+        // Запрос на Google Apps Script
+        fetch(`${APPS_SCRIPT_URL}?sessionId=${SESSION_ID}`) 
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Server returned error: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                updateChatStatus(); // Обновляем статус, если запрос успешен
 
-        messageInput.value = ''; // Очистка поля
-        sendButton.disabled = true; // Блокируем кнопку до ответа
+                if (data.ok && data.messages.length > 0) {
+                    const mySenderId = encodeB64(myKeyPair.publicKey).slice(0, 10);
+                    
+                    data.messages.forEach(msg => {
+                        // 1. Проверяем, было ли сообщение уже получено
+                        if (receivedMessageIds.has(msg.id)) {
+                            return; // Пропускаем уже известное сообщение
+                        }
+                        
+                        // 2. Отмечаем его как полученное
+                        receivedMessageIds.add(msg.id); 
 
-        const messageBytes = nacl.util.decodeUTF8(message);
-        const nonce = nacl.randomBytes(nacl.box.nonceLength);
+                        // 3. Обрабатываем сообщение
+                        const timestamp = new Date(msg.timestamp);
 
-        // Шифрование
-        // Используем мой приватный и публичный ключ собеседника (peerPubUint8)
-        const encryptedBytes = nacl.box.easy(
-            messageBytes, 
+                        // Если сообщение от нас, просто отображаем его (если не было отображено ранее)
+                        if (msg.sender === mySenderId) {
+                            // Поскольку мы отображаем его сразу при отправке, здесь просто гарантируем
+                            // что оно попадет в чат-окно, если мы его пропустили.
+                            // Для Live-чата это нужно, если пользователь перезагрузил страницу
+                            // и нужно заполнить историю.
+                            decryptAndDisplayMessage(msg.encryptedMessage, timestamp, 'msg-self', false);
+                        } else {
+                            // Если сообщение от собеседника, дешифруем и отображаем
+                            decryptAndDisplayMessage(msg.encryptedMessage, timestamp, 'msg-peer', true);
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Polling Error:', error);
+                chatStatusEl.textContent = '❌ Ошибка сети/бэкенда. Повтор через 5с...';
+            });
+    };
+
+    // Запускаем Polling и выполняем первый опрос
+    pollingInterval = setInterval(poll, POLLING_RATE); 
+    poll(); 
+}
+
+function decryptAndDisplayMessage(encryptedText, timestamp, type, showToastNotification) {
+    try {
+        const encryptedBytes = decodeB64(encryptedText);
+        if (!encryptedBytes || encryptedBytes.length < NONCE_LEN) throw new Error("Invalid encrypted data length.");
+
+        // Извлекаем nonce и собственно шифртекст
+        const nonce = encryptedBytes.slice(0, NONCE_LEN);
+        const ciphertext = encryptedBytes.slice(NONCE_LEN);
+
+        // Дешифровка
+        const decryptedBytes = nacl.box.open(
+            ciphertext, 
             nonce, 
-            peerPubUint8, 
-            myKeyPair.secretKey
+            peerPubUint8, // Ключ отправителя (публичный ключ собеседника)
+            myKeyPair.secretKey // Наш приватный ключ
         );
 
-        // Объединяем nonce и зашифрованный текст для отправки
-        const fullEncryptedBytes = new Uint8Array(nonce.length + encryptedBytes.length);
-        fullEncryptedBytes.set(nonce);
-        fullEncryptedBytes.set(encryptedBytes, nonce.length);
+        if (!decryptedBytes) throw new Error("Decryption failed. Check keys.");
 
-        const encryptedText = encodeB64(fullEncryptedBytes);
-        const mySenderId = encodeB64(myKeyPair.publicKey).slice(0, 10);
-        const sendTimestamp = new Date();
+        const decryptedText = util.encodeUTF8(decryptedBytes);
+        
+        displayChatMessage(decryptedText, type, timestamp);
+
+        if (showToastNotification) {
+            showToast('🔓 Получено и расшифровано сообщение!', 1500);
+        }
+
+    } catch (e) {
+        console.error("Decryption or processing error:", e);
+        // Отображаем сообщение об ошибке только для сообщений от собеседника
+        if (type === 'msg-peer') {
+            displayChatMessage(`[ОШИБКА ДЕШИФРОВКИ] Проверьте ключи.`, 'msg-peer', timestamp);
+            if (showToastNotification) showToast('❌ Ошибка дешифровки! Проверьте ключи.', 3000);
+        }
+    }
+}
 
 
-        // 3. 🚀 ОТПРАВКА НА GOOGLE APPS SCRIPT
-        fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            mode: 'cors',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                sessionId: SESSION_ID,
-                encryptedMessage: encryptedText,
-                sender: mySenderId
-            })
+function sendLiveMessage() {
+    if (!myKeyPair || !peerPubUint8) {
+        showToast('🔒 Сначала настройте ключи!', 2000);
+        return;
+    }
+
+    const message = liveMessageInput.value.trim();
+    if (!message) return;
+
+    liveMessageInput.value = ''; // Очистка поля
+    sendLiveBtn.disabled = true; // Блокируем кнопку до ответа
+
+    const messageBytes = util.decodeUTF8(message);
+    const nonce = nacl.randomBytes(NONCE_LEN);
+
+    // Шифрование
+    // Используем НАШ приватный ключ и ПУБЛИЧНЫЙ ключ собеседника
+    const encryptedBytes = nacl.box(
+        messageBytes, 
+        nonce, 
+        peerPubUint8, 
+        myKeyPair.secretKey
+    );
+
+    // Объединяем nonce и зашифрованный текст для отправки
+    const fullEncryptedBytes = new Uint8Array(nonce.length + encryptedBytes.length);
+    fullEncryptedBytes.set(nonce);
+    fullEncryptedBytes.set(encryptedBytes, nonce.length);
+
+    const encryptedText = encodeB64(fullEncryptedBytes);
+    const mySenderId = encodeB64(myKeyPair.publicKey).slice(0, 10);
+    const sendTimestamp = new Date();
+
+
+    // 🚀 ОТПРАВКА НА GOOGLE APPS SCRIPT
+    fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            sessionId: SESSION_ID,
+            encryptedMessage: encryptedText,
+            sender: mySenderId
         })
-        .then(response => response.json())
-        .then(data => {
-            sendButton.disabled = false;
-            if (data.ok) {
-                // Если отправка успешна, отображаем сообщение
-                displayMessengerMessage(message, 'msg-self', sendTimestamp);
-                showToast('🔑 Сообщение зашифровано и отправлено!', 1500);
-            } else {
-                displayMessengerMessage(`[ОШИБКА ОТПРАВКИ] ${data.description || 'Неизвестная ошибка'}`, 'msg-self', sendTimestamp);
-                showToast('❌ Ошибка при отправке!', 3000);
-            }
-        })
-        .catch(error => {
-            console.error('Send Error:', error);
-            sendButton.disabled = false;
-            displayMessengerMessage(`[ОШИБКА СЕТИ] Не удалось отправить.`, 'msg-self', sendTimestamp);
-            showToast('❌ Ошибка сети! Проверьте подключение.', 3000);
+    })
+    .then(response => response.json())
+    .then(data => {
+        sendLiveBtn.disabled = false;
+        if (data.ok) {
+            // Если отправка успешна, отображаем сообщение
+            displayChatMessage(message, 'msg-self', sendTimestamp);
+            showToast('🔑 Сообщение зашифровано и отправлено!', 1500);
+        } else {
+            displayChatMessage(`[ОШИБКА ОТПРАВКИ] ${data.description || 'Неизвестная ошибка'}`, 'msg-self', sendTimestamp);
+            showToast('❌ Ошибка при отправке!', 3000);
+        }
+    })
+    .catch(error => {
+        console.error('Send Error:', error);
+        sendLiveBtn.disabled = false;
+        displayChatMessage(`[ОШИБКА СЕТИ] Не удалось отправить.`, 'msg-self', sendTimestamp);
+        showToast('❌ Ошибка сети! Проверьте подключение.', 3000);
+    });
+}
+
+
+// =================================================================
+// 4. СЕКЦИЯ КРИПТОГРАФИИ (АДАПТИРОВАННАЯ ЛОГИКА)
+// =================================================================
+
+function enableButtonsForKeys(){
+    const hasKeyPair = !!myKeyPair;
+    const hasPeerKey = !!peerPubUint8;
+    const plainNotEmpty = plainEl.value.trim().length > 0;
+    const cipherInNotEmpty = cipherInEl.value.trim().length > 0;
+
+    // Live Chat Status
+    updateChatStatus();
+    
+    // Ручная Криптография
+    importPeerBtn.disabled = peerPubEl.value.trim().length === 0;
+    encryptBtn.disabled = !(hasKeyPair && hasPeerKey && plainNotEmpty);
+    decryptBtn.disabled = !(hasKeyPair && hasPeerKey && cipherInNotEmpty);
+    copyCipherBtn.disabled = cipherOutEl.value.trim().length === 0;
+
+    pubArea.style.display = hasKeyPair ? 'flex' : 'none';
+
+    if (!hasKeyPair) {
+      myFpEl.textContent = 'Нет ключа';
+      myPubEl.value = '';
+    }
+    if (!hasPeerKey) {
+      peerFpEl.textContent = 'Нет ключа';
+    }
+}
+
+function saveMyPairToStorage(){
+    if(!myKeyPair) return;
+    try{
+      localStorage.setItem('sc_my_pair', JSON.stringify({
+        pub: encodeB64(myKeyPair.publicKey),
+        sec: encodeB64(myKeyPair.secretKey)
+      }));
+      showToast('Пара ключей сохранена в localStorage');
+      enableButtonsForKeys();
+    }catch(e){ showToast('Ошибка сохранения: ' + e.message); }
+}
+
+function loadMyPairFromStorage(){
+    const raw = localStorage.getItem('sc_my_pair');
+    if(!raw) return false;
+    try{
+      const parsed = JSON.parse(raw);
+      myKeyPair = {
+        publicKey: decodeB64(parsed.pub),
+        secretKey: decodeB64(parsed.sec)
+      };
+      myPubEl.value = parsed.pub;
+      pubArea.style.display = 'flex';
+      sha256hex(myKeyPair.publicKey).then(fp=> myFpEl.textContent = fp.slice(0,32));
+      showToast('Пара ключей загружена из localStorage');
+      return true;
+    }catch(e){ console.error(e); return false; }
+}
+
+function loadPeerFromStorage() {
+    const raw = localStorage.getItem('sc_peer_pub');
+    if(!raw) return false;
+    try {
+        const u8 = decodeB64(raw);
+        if(u8.length !== PUB_LEN) throw new Error('неверная длина публичного ключа');
+        peerPubUint8 = u8;
+        peerPubEl.value = raw;
+        sha256hex(peerPubUint8).then(fp => peerFpEl.textContent = fp.slice(0,32));
+        return true;
+    } catch(e) { console.error(e); return false; }
+}
+
+function savePeerToStorage(pubB64) {
+    localStorage.setItem('sc_peer_pub', pubB64);
+}
+
+function clearAllStorage(){
+    localStorage.removeItem('sc_my_pair');
+    localStorage.removeItem('sc_peer_pub');
+    myKeyPair = null;
+    peerPubUint8 = null;
+    myPubEl.value = '';
+    peerPubEl.value = '';
+    cipherOutEl.value = '';
+    cipherInEl.value = '';
+    plainEl.value = '';
+    plainOutEl.value = '';
+    pubArea.style.display = 'none';
+    clearInterval(pollingInterval);
+    pollingInterval = null;
+    showToast('Все сохранённые ключи и поля очищены');
+    enableButtonsForKeys();
+}
+
+function generateKeyPair(){
+    const kp = nacl.box.keyPair();
+    myKeyPair = { publicKey: kp.publicKey, secretKey: kp.secretKey };
+    const pubB64 = encodeB64(kp.publicKey);
+
+    myPubEl.value = pubB64;
+    pubArea.style.display = 'flex';
+    sha256hex(kp.publicKey).then(fp => myFpEl.textContent = fp.slice(0,32));
+
+    saveMyPairToStorage();
+    copyToClipboard(pubB64);
+    
+    // Запускаем Polling (если есть ключ собеседника)
+    if (peerPubUint8) startPollingForMessages();
+
+    showToast('Пара ключей сгенерирована и скопирована');
+    enableButtonsForKeys();
+}
+
+function importPeerFromField(){
+    const s = peerPubEl.value.trim();
+    if(!s){ showToast('Вставьте публичный ключ в поле'); return; }
+    try{
+      const u8 = decodeB64(s);
+      if(u8.length !== PUB_LEN) throw new Error('неверная длина публичного ключа');
+      peerPubUint8 = u8;
+      sha256hex(peerPubUint8).then(fp => peerFpEl.textContent = fp.slice(0,32));
+      savePeerToStorage(s);
+      showToast('Ключ собеседника импортирован');
+      
+      // Запускаем Polling
+      if (myKeyPair) {
+          clearInterval(pollingInterval); // Останавливаем старый, если был
+          pollingInterval = null;
+          startPollingForMessages();
+      }
+
+      enableButtonsForKeys();
+    }catch(e){
+      showToast('Ошибка импорта ключа: ' + (e.message||''));
+    }
+}
+
+function encryptMessage() {
+    const text = plainEl.value.trim();
+    if (!text || !myKeyPair || !peerPubUint8 || text.length > MAX_LEN) {
+        showToast('Проверьте ключи и сообщение'); return;
+    }
+
+    const nonce = nacl.randomBytes(NONCE_LEN);
+    const msgUint8 = util.decodeUTF8(text);
+    const box = nacl.box(msgUint8, nonce, peerPubUint8, myKeyPair.secretKey);
+
+    cipherOutEl.value = util.encodeBase64(nonce) + ':' + util.encodeBase64(box);
+    plainEl.value = '';
+
+    showToast('Сообщение зашифровано');
+    enableButtonsForKeys();
+}
+
+function decryptMessage(){
+    const s = cipherInEl.value.trim();
+    if(!s || !myKeyPair || !peerPubUint8){ showToast('Проверьте ключи и шифртекст'); return; }
+    try{
+        const cleanStr = s.replace(/\s+/g,'');
+        const parts = cleanStr.split(':');
+        if(parts.length !== 2) throw new Error('Неверный формат (ожидается nonce:ct)');
+
+        const nonce = decodeB64(parts[0]);
+        const ct = decodeB64(parts[1]);
+
+        const msgU8 = nacl.box.open(ct, nonce, peerPubUint8, myKeyPair.secretKey);
+        if(!msgU8) throw new Error('Дешифровка не удалась');
+
+        plainOutEl.value = util.encodeUTF8(msgU8);
+        cipherInEl.value = '';
+        showToast('Сообщение расшифровано');
+    }catch(e){
+        showToast('Ошибка дешифровки: ' + (e.message||''));
+    }
+}
+
+
+// =================================================================
+// 5. ИНИЦИАЛИЗАЦИЯ И ОБРАБОТЧИКИ
+// =================================================================
+
+// Инициализация при старте
+document.addEventListener('DOMContentLoaded', () => {
+    loadMyPairFromStorage();
+    loadPeerFromStorage();
+    enableButtonsForKeys();
+    startPollingForMessages(); // Запускаем Polling после загрузки ключей
+    showPage('home');
+});
+
+// Обработчики Live Chat
+sendLiveBtn.addEventListener('click', sendLiveMessage);
+liveMessageInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey && !sendLiveBtn.disabled) {
+        e.preventDefault();
+        sendLiveMessage();
+    }
+});
+liveMessageInput.addEventListener('input', () => {
+    if (liveMessageInput.value.trim().length > 0) {
+        if (myKeyPair && peerPubUint8) sendLiveBtn.disabled = false;
+    } else {
+        sendLiveBtn.disabled = true;
+    }
+});
+
+
+// Обработчики Ручной Криптографии
+genBtn.addEventListener('click', generateKeyPair);
+resetBtn.addEventListener('click', ()=> {
+    if(confirm('Удалить все сохранённые ключи и поля?')) clearAllStorage();
+});
+copyPubBtn.addEventListener('click', ()=> copyToClipboard(myPubEl.value));
+importPeerBtn.addEventListener('click', importPeerFromField);
+
+encryptBtn.addEventListener('click', encryptMessage);
+copyCipherBtn.addEventListener('click', ()=> copyToClipboard(cipherOutEl.value));
+decryptBtn.addEventListener('click', decryptMessage);
+
+// Слушатели для полей ввода ручной криптографии
+peerPubEl.addEventListener('input', enableButtonsForKeys);
+plainEl.addEventListener('input', enableButtonsForKeys);
+cipherInEl.addEventListener('input', enableButtonsForKeys);
+
+// Активация кнопки импорта при вставке
+peerPubEl.addEventListener('paste', () => { setTimeout(enableButtonsForKeys, 50); });
+
+// UX: Горячие клавиши для ручной криптографии
+peerPubEl.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); importPeerFromField(); }});
+plainEl.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); encryptMessage(); }});
+cipherInEl.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); decryptMessage(); }});
+
+// Обновление состояния кнопки копирования шифртекста
+const observer = new MutationObserver(enableButtonsForKeys);
+observer.observe(cipherOutEl, { characterData:true, attributes:true, subtree:true, childList:true });
+
+
+// =================================================================
+// 6. МЕМЫ И НАВИГАЦИЯ
+// =================================================================
+const state = {
+  activePage: 'home',
+  memeClicks: 0,
+  isMemeActive: false,
+  isSansActive: false,
+};
+
+const pages = document.querySelectorAll('.page');
+const navButtons = document.querySelectorAll('#nav-menu button');
+const menuBtn = document.getElementById('menu-btn');
+const navMenu = document.getElementById('nav-menu');
+
+function toggleMenu() {
+  navMenu.classList.toggle('active');
+  menuBtn.textContent = navMenu.classList.contains('active') ? '✖ Close' : '≡ Menu';
+}
+
+function showPage(pageId) {
+  state.activePage = pageId;
+  pages.forEach(page => {
+    if (page.id !== pageId + '-page') {
+        page.classList.remove('active');
+    }
+  });
+
+  navButtons.forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.getAttribute('data-page') === pageId) {
+      btn.classList.add('active');
+    }
+  });
+
+  const currentPage = document.getElementById(pageId + '-page');
+  if (currentPage) {
+    currentPage.classList.add('active');
+  }
+
+  if (pageId === 'meme') {
+    enterMemeMode();
+  } else {
+    exitMemeMode();
+  }
+}
+
+navButtons.forEach(button => {
+  button.addEventListener('click', (e) => {
+    const pageId = e.target.getAttribute('data-page');
+    showPage(pageId);
+    toggleMenu();
+  });
+});
+
+const CONFETTI_COLORS = ['#ff0000', '#ffff00', '#0000ff', '#ff5aab'];
+
+function createConfetti(count) {
+    for (let i = 0; i < count; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.backgroundColor = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+        confetti.style.left = (Math.random() < 0.5 ? 0 : 100) + 'vw';
+        confetti.style.top = Math.random() * 100 + 'vh';
+        confetti.style.width = Math.random() * 10 + 5 + 'px';
+        confetti.style.height = confetti.style.width;
+
+        confetti.style.animationName = (i % 2 === 0) ? 'fall-left' : 'fall-right';
+        confetti.style.animationDelay = Math.random() * 0.5 + 's';
+        confetti.style.animationDuration = Math.random() * 2 + 3 + 's';
+
+        CONFETTI_CONTAINER.appendChild(confetti);
+
+        confetti.addEventListener('animationend', () => {
+            confetti.remove();
         });
     }
+}
 
-    // =================================================================
-    // 4. ЛОГИКА НАСТРОЕК (Ключи)
-    // =================================================================
+// Активация мема
+SANS_IMAGE.addEventListener('click', activateSansMeme);
+function activateSansMeme(event) {
+    if (state.activePage !== 'home') return;
 
-    function loadKeysFromStorage() {
-        const privKeyB64 = localStorage.getItem('my_private_key');
-        const pubKeyB64 = localStorage.getItem('my_public_key');
-        const peerPubB64 = localStorage.getItem('peer_public_key');
-        
-        if (privKeyB64 && pubKeyB64) {
-            myKeyPair = {
-                publicKey: decodeB64(pubKeyB64),
-                secretKey: decodeB64(privKeyB64)
-            };
-            
-            // Если ключ собеседника сохранен, сразу декодируем его
-            if (peerPubB64) {
-                peerPubUint8 = decodeB64(peerPubB64);
-            }
-            
-            // Инициализируем Polling, если ключи есть
-            startPollingForMessages();
-        }
-        
-        // Обновляем поля в настройках
-        myPrivInput.value = privKeyB64 || '';
-        myPubDisplay.value = pubKeyB64 || 'Ключ не сгенерирован.';
-        peerPubInput.value = peerPubB64 || '';
-        
-        updateStatus();
+    if (state.isSansActive) {
+        showToast('...ты уже сделал свой выбор.', 1000);
+        return;
     }
 
-    function generateNewKeyPair() {
-        const pair = nacl.box.keyPair();
-        myKeyPair = pair;
-        
-        const pubB64 = encodeB64(pair.publicKey);
-        const privB64 = encodeB64(pair.secretKey);
-        
-        myPubDisplay.value = pubB64;
-        myPrivInput.value = privB64;
-        
-        showToast('🔑 Новая пара ключей сгенерирована!', 2000);
+    state.isSansActive = true;
+    createConfetti(100);
+    SANS_MESSAGE.classList.add('active');
+
+    setTimeout(() => {
+        SANS_MESSAGE.classList.remove('active');
+        showToast('...и это моя последняя шутка.', 2500);
+    }, 2000);
+}
+
+
+const MEME_TEXT_CONTENT = "HAX LO L SOCKS HAXXOR MEME HAXOR LOL SHCURE HAX LOL MEME HAXOR SKUL SOCKS HAX LOL SCURE HAX MEME LOL";
+let memeInterval;
+let memeBgText;
+let memePageContent;
+
+function createMemeBg() {
+    memeBgText = document.createElement('div');
+    memeBgText.className = 'meme-bg-text';
+    document.body.appendChild(memeBgText);
+}
+
+function updateMemeBg() {
+    if (!memeBgText) return;
+
+    let content = "";
+    for (let i = 0; i < 200; i++) {
+        const text = MEME_TEXT_CONTENT.split(' ')[Math.floor(Math.random() * MEME_TEXT_CONTENT.split(' ').length)];
+        content += text + " ".repeat(Math.floor(Math.random() * 5) + 1);
     }
-    
-    function saveSettings() {
-        const newPeerPubB64 = peerPubInput.value.trim();
-        const newMyPrivB64 = myPrivInput.value.trim();
+    memeBgText.textContent = content;
+}
 
-        // 1. Сохранение своих ключей
-        if (newMyPrivB64 && newMyPrivB64 !== localStorage.getItem('my_private_key')) {
-             try {
-                const secretKeyBytes = decodeB64(newMyPrivB64);
-                // Извлекаем публичный ключ из приватного для проверки
-                const validKeyPair = nacl.box.keyPair.fromSecretKey(secretKeyBytes);
-                
-                localStorage.setItem('my_private_key', newMyPrivB64);
-                localStorage.setItem('my_public_key', encodeB64(validKeyPair.publicKey));
-                myKeyPair = validKeyPair;
-                myPubDisplay.value = encodeB64(validKeyPair.publicKey);
-                showToast('✅ Ваши ключи сохранены!', 1500);
-            } catch (e) {
-                showToast('❌ Неверный формат секретного ключа!', 3000);
-                return;
-            }
-        }
-        
-        // 2. Сохранение ключа собеседника
-        if (newPeerPubB64) {
-            const peerBytes = decodeB64(newPeerPubB64);
-            if (peerBytes && peerBytes.length === nacl.box.publicKeyLength) {
-                localStorage.setItem('peer_public_key', newPeerPubB64);
-                peerPubUint8 = peerBytes;
-                showToast('✅ Ключ собеседника сохранен!', 1500);
-            } else {
-                 showToast('❌ Неверный формат публичного ключа собеседника!', 3000);
-                 return;
-            }
-        } else {
-             localStorage.removeItem('peer_public_key');
-             peerPubUint8 = null;
-        }
+function enterMemeMode() {
+    if (state.isMemeActive) return;
+    state.isMemeActive = true;
+    document.body.classList.add('meme-mode');
+    if (!memeBgText) createMemeBg();
+    updateMemeBg();
+    memeInterval = setInterval(updateMemeBg, 100);
 
-        settingsOverlay.style.display = 'none';
-        
-        // Перезапускаем Polling с новыми ключами
-        clearInterval(pollingInterval);
-        pollingInterval = null;
-        startPollingForMessages();
-        updateStatus();
+    memePageContent = document.createElement('div');
+    memePageContent.id = 'meme-page-content';
+    memePageContent.innerHTML = `
+        <h1>LOADING HACKER.EXE...</h1>
+        <p>1337 HAX ACTIVATED. SECURITY IS FOR NOOBS.</p>
+    `;
+    document.body.appendChild(memePageContent);
+}
+
+function exitMemeMode() {
+    if (!state.isMemeActive) return;
+    state.isMemeActive = false;
+    document.body.classList.remove('meme-mode');
+    clearInterval(memeInterval);
+
+    if (memeBgText) {
+        memeBgText.remove();
+        memeBgText = null;
     }
-    
-    function updateStatus() {
-        if (myKeyPair && peerPubUint8) {
-            statusBar.textContent = `✅ Подключено. ID: ${encodeB64(myKeyPair.publicKey).slice(0, 10)}`;
-            sendButton.disabled = false;
-        } else if (myKeyPair) {
-            statusBar.textContent = '⚠️ Нет ключа собеседника. Чат заблокирован.';
-            sendButton.disabled = true;
-        } else {
-            statusBar.textContent = '🔒 Ожидание ключей...';
-            sendButton.disabled = true;
-        }
+    if (memePageContent) {
+        memePageContent.remove();
+        memePageContent = null;
     }
-
-
-    // =================================================================
-    // 5. UI и Уведомления
-    // =================================================================
-
-    function showToast(message, duration) {
-        const toastContainer = document.getElementById('toast-container');
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.textContent = message;
-        toastContainer.appendChild(toast);
-
-        setTimeout(() => {
-            toast.classList.add('show');
-        }, 10);
-
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toastContainer.removeChild(toast), 500);
-        }, duration);
-    }
-
-
-    // =================================================================
-    // 6. ОБРАБОТЧИКИ СОБЫТИЙ
-    // =================================================================
-    
-    // Отправка по кнопке Enter (без Shift)
-    messageInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            if (!sendButton.disabled) {
-                sendMessengerMessage();
-            }
-        }
-    });
-
-    sendButton.addEventListener('click', sendMessengerMessage);
-    
-    // Настройки
-    document.getElementById('settings-link').addEventListener('click', () => {
-        settingsOverlay.style.display = 'flex';
-    });
-    
-    document.getElementById('save-settings-button').addEventListener('click', saveSettings);
-    document.getElementById('generate-key-button').addEventListener('click', generateNewKeyPair);
-    
-    // Загрузка ключей при старте
-    window.onload = loadKeysFromStorage;
-
+}
 </script>
 </body>
 </html>
