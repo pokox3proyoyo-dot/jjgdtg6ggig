@@ -778,4 +778,247 @@ function generateKeyPair() {
   return nacl.util.encodeBase64(kp.publicKey);
 }
 
-async function sha256hex(u
+
+async function sha256hex(u8) {
+  if(!crypto.subtle) return 'N/A';
+  try {
+    const hash = await crypto.subtle.digest('SHA-256', u8);
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+  } catch(e) {
+    console.error('SHA256 error:', e);
+    return 'Error';
+  }
+}
+
+function copyToClipboard(txt) {
+  if(!txt) { showToast('Нечего копировать'); return; }
+  if(navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(() => {
+      showToast('Скопировано! 📋');
+      createConfetti(15);
+    }).catch(() => showToast('Ошибка копирования'));
+  } else {
+    // Fallback
+    const temp = document.createElement('textarea');
+    temp.value = txt;
+    document.body.appendChild(temp);
+    temp.select();
+    document.execCommand('copy');
+    document.body.removeChild(temp);
+    showToast('Скопировано! 📋');
+    createConfetti(15);
+  }
+}
+
+function enableButtons() {
+  const hasKeys = !!myKeyPair;
+  const hasPeer = !!peerPubUint8;
+  const hasPlain = plainEl.value.trim().length > 0;
+  
+  importPeerBtn.disabled = !peerPubEl.value.trim();
+  encryptBtn.disabled = !(hasKeys && hasPeer && hasPlain);
+  decryptBtn.disabled = !(hasKeys && hasPeer);
+  copyCipherBtn.disabled = !cipherOutEl.value.trim();
+  
+  pubArea.style.display = hasKeys ? 'block' : 'none';
+  
+  if(!hasKeys) {
+    myFpEl.textContent = 'Нет ключа';
+  }
+  if(!hasPeer) {
+    peerFpEl.textContent = 'Нет ключа';
+  }
+}
+
+function saveKeys() {
+  if(!myKeyPair) return;
+  try {
+    localStorage.setItem('hax_keys', JSON.stringify({
+      pub: encodeB64(myKeyPair.publicKey),
+      sec: encodeB64(myKeyPair.secretKey)
+    }));
+    console.log('Keys saved to localStorage');
+  } catch(e) { 
+    console.error('Save error:', e); 
+    showToast('Ошибка сохранения ключей');
+  }
+}
+
+function loadKeys() {
+  const raw = localStorage.getItem('hax_keys');
+  if(!raw) return false;
+  try {
+    const data = JSON.parse(raw);
+    myKeyPair = {
+      publicKey: decodeB64(data.pub),
+      secretKey: decodeB64(data.sec)
+    };
+    myPubEl.value = data.pub;
+    sha256hex(myKeyPair.publicKey).then(fp => myFpEl.textContent = fp.slice(0,32));
+    showToast('Ключи загружены из хранилища');
+    enableButtons();
+    return true;
+  } catch(e) { 
+    console.error('Load error:', e);
+    return false; 
+  }
+}
+
+function generateKeyPair() {
+  try {
+    const kp = nacl.box.keyPair();
+    myKeyPair = { publicKey: kp.publicKey, secretKey: kp.secretKey };
+    const pubB64 = encodeB64(kp.publicKey);
+    
+    myPubEl.value = pubB64;
+    sha256hex(kp.publicKey).then(fp => myFpEl.textContent = fp.slice(0,32));
+    
+    saveKeys();
+    copyToClipboard(pubB64);
+    showToast('Ключи сгенерированы! 🔑');
+    createConfetti(50);
+    enableButtons();
+  } catch(e) {
+    console.error('Generate error:', e);
+    showToast('Ошибка генерации ключей: ' + e.message);
+  }
+}
+
+function importPeer() {
+  const txt = peerPubEl.value.trim();
+  if(!txt) { showToast('Вставьте ключ собеседника'); return; }
+  try {
+    const u8 = decodeB64(txt);
+    if(u8.length !== PUB_LEN) throw new Error('Неверная длина ключа (ожидается 32 байта)');
+    peerPubUint8 = u8;
+    sha256hex(u8).then(fp => peerFpEl.textContent = fp.slice(0,32));
+    showToast('Ключ импортирован! 🔓');
+    enableButtons();
+  } catch(e) {
+    console.error('Import error:', e);
+    showToast('Ошибка импорта: ' + e.message);
+  }
+}
+
+function encryptMessage() {
+  const text = plainEl.value.trim();
+  if(!text) { showToast('Введите сообщение'); return; }
+  if(!myKeyPair || !peerPubUint8) { showToast('Нет ключей'); return; }
+  
+  try {
+    // Check for secret code
+    if(text.toLowerCase().includes('socks') || text.toLowerCase().includes('носки')) {
+      activateSocksMode();
+    }
+    
+    const nonce = nacl.randomBytes(NONCE_LEN);
+    
+    // ПРАВИЛЬНОЕ преобразование string → Uint8Array
+    const encoder = new TextEncoder();
+    const msgU8 = encoder.encode(text);
+    
+    const box = nacl.box(msgU8, nonce, peerPubUint8, myKeyPair.secretKey);
+    const result = nacl.util.encodeBase64(nonce) + ':' + nacl.util.encodeBase64(box);
+    
+    cipherOutEl.value = result;
+    plainEl.value = '';
+    
+    addToHistory(text, 'enc');
+    showToast('Зашифровано! 🔒');
+    createConfetti(25);
+    enableButtons();
+  } catch(e) {
+    console.error('Encrypt error:', e);
+    showToast('Ошибка шифрования: ' + e.message);
+  }
+}
+function decryptMessage() {
+  const txt = cipherInEl.value.trim();
+  if(!txt) { showToast('Вставьте шифртекст'); return; }
+  if(!myKeyPair || !peerPubUint8) { showToast('Нет ключей'); return; }
+  
+  try {
+    const clean = txt.replace(/\s+/g, '');
+    const parts = clean.split(':');
+    if(parts.length !== 2) throw new Error('Неверный формат (ожидается nonce:ciphertext)');
+    
+    const nonce = nacl.util.decodeBase64(parts[0]);
+    const ct = nacl.util.decodeBase64(parts[1]);
+    
+    if(nonce.length !== NONCE_LEN) throw new Error('Неверная длина nonce');
+    
+    const msgU8 = nacl.box.open(ct, nonce, peerPubUint8, myKeyPair.secretKey);
+    if(!msgU8) throw new Error('Дешифровка не удалась (неверный ключ или повреждённые данные)');
+    
+    // ПРАВИЛЬНОЕ преобразование Uint8Array → string
+    const decoder = new TextDecoder();
+    const text = decoder.decode(msgU8);
+    
+    plainOutEl.value = text;
+    cipherInEl.value = '';
+    
+    addToHistory(text, 'dec');
+    showToast('Расшифровано! 🔓');
+    createConfetti(25);
+  } catch(e) {
+    console.error('Decrypt error:', e);
+    showToast('Ошибка дешифрования: ' + e.message);
+  }
+}
+
+function clearAll() {
+  if(!confirm('Удалить все ключи и данные?')) return;
+  localStorage.clear();
+  myKeyPair = null;
+  peerPubUint8 = null;
+  myPubEl.value = '';
+  peerPubEl.value = '';
+  cipherOutEl.value = '';
+  cipherInEl.value = '';
+  plainEl.value = '';
+  plainOutEl.value = '';
+  myFpEl.textContent = 'Нет ключа';
+  peerFpEl.textContent = 'Нет ключа';
+  showToast('Всё очищено! 🗑️');
+  enableButtons();
+}
+
+// Event Listeners
+genBtn.addEventListener('click', generateKeyPair);
+resetBtn.addEventListener('click', clearAll);
+copyPubBtn.addEventListener('click', () => copyToClipboard(myPubEl.value));
+importPeerBtn.addEventListener('click', importPeer);
+encryptBtn.addEventListener('click', encryptMessage);
+copyCipherBtn.addEventListener('click', () => copyToClipboard(cipherOutEl.value));
+decryptBtn.addEventListener('click', decryptMessage);
+
+peerPubEl.addEventListener('input', enableButtons);
+plainEl.addEventListener('input', enableButtons);
+cipherOutEl.addEventListener('input', enableButtons);
+
+plainEl.addEventListener('keydown', e => {
+  if(e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    if(!encryptBtn.disabled) encryptMessage();
+  }
+});
+
+cipherInEl.addEventListener('keydown', e => {
+  if(e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    if(!decryptBtn.disabled) decryptMessage();
+  }
+});
+
+// Init
+loadKeys();
+enableButtons();
+showPage('home');
+
+console.log('Secure Hax Chat initialized!');
+console.log('nacl version:', nacl.version || 'unknown');
+
+}); // end window.load
+</script>
+</body>
+</html>
