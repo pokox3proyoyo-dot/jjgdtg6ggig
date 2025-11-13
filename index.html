@@ -925,9 +925,13 @@ function encryptMessage() {
     }
     
     const nonce = nacl.randomBytes(NONCE_LEN);
-    const msgU8 = decodeUTF8(text);
+    
+    // ПРАВИЛЬНОЕ преобразование string → Uint8Array
+    const encoder = new TextEncoder();
+    const msgU8 = encoder.encode(text);
+    
     const box = nacl.box(msgU8, nonce, peerPubUint8, myKeyPair.secretKey);
-    const result = encodeB64(nonce) + ':' + encodeB64(box);
+    const result = nacl.util.encodeBase64(nonce) + ':' + nacl.util.encodeBase64(box);
     
     cipherOutEl.value = result;
     plainEl.value = '';
@@ -941,7 +945,6 @@ function encryptMessage() {
     showToast('Ошибка шифрования: ' + e.message);
   }
 }
-
 function decryptMessage() {
   const txt = cipherInEl.value.trim();
   if(!txt) { showToast('Вставьте шифртекст'); return; }
@@ -952,15 +955,18 @@ function decryptMessage() {
     const parts = clean.split(':');
     if(parts.length !== 2) throw new Error('Неверный формат (ожидается nonce:ciphertext)');
     
-    const nonce = decodeB64(parts[0]);
-    const ct = decodeB64(parts[1]);
+    const nonce = nacl.util.decodeBase64(parts[0]);
+    const ct = nacl.util.decodeBase64(parts[1]);
     
     if(nonce.length !== NONCE_LEN) throw new Error('Неверная длина nonce');
     
     const msgU8 = nacl.box.open(ct, nonce, peerPubUint8, myKeyPair.secretKey);
     if(!msgU8) throw new Error('Дешифровка не удалась (неверный ключ или повреждённые данные)');
     
-    const text = encodeUTF8(msgU8);
+    // ПРАВИЛЬНОЕ преобразование Uint8Array → string
+    const decoder = new TextDecoder();
+    const text = decoder.decode(msgU8);
+    
     plainOutEl.value = text;
     cipherInEl.value = '';
     
