@@ -925,7 +925,7 @@ function encryptMessage() {
     }
     
     const nonce = nacl.randomBytes(NONCE_LEN);
-    const msgU8 = encodeUTF8(text);
+    const msgU8 = decodeUTF8(text);
     const box = nacl.box(msgU8, nonce, peerPubUint8, myKeyPair.secretKey);
     const result = encodeB64(nonce) + ':' + encodeB64(box);
     
@@ -960,7 +960,7 @@ function decryptMessage() {
     const msgU8 = nacl.box.open(ct, nonce, peerPubUint8, myKeyPair.secretKey);
     if(!msgU8) throw new Error('Дешифровка не удалась (неверный ключ или повреждённые данные)');
     
-    const text = decodeUTF8(msgU8);
+    const text = encodeUTF8(msgU8);
     plainOutEl.value = text;
     cipherInEl.value = '';
     
