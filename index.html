@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Secure Hax Chat 2.0 🔐✨</title>
+<title>Secure Hax Messenger 💬🔐</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <style>
@@ -41,7 +41,7 @@ body {
   z-index: 1;
 }
 
-h1 { margin-top: 24px; font-size: 2rem; color: var(--header-color); text-shadow: 0 2px 8px rgba(0,0,0,0.5); z-index: 100;}
+h1 { margin-top: 24px; font-size: 2rem; color: var(--header-color); text-shadow: 0 2px 8px rgba(0,0,0,0.5); z-index: 100; position: relative;}
 .container { width: 90%; max-width: 800px; margin: 16px auto; padding-bottom: 50px; z-index: 100; position: relative;}
 .card { 
   background: var(--glass-bg); 
@@ -91,27 +91,13 @@ button {
   border: none; 
   border-radius: 12px; 
   padding: 12px 18px; 
-  margin-top: 8px; 
+  margin: 4px; 
   cursor: pointer; 
   font-weight: 600; 
   transition: all 0.2s; 
   white-space: nowrap;
   position: relative;
   overflow: hidden;
-}
-button::after {
-  content: '';
-  position: absolute;
-  top: 50%; left: 50%;
-  width: 0; height: 0;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.3);
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
-}
-button:active::after {
-  width: 300px;
-  height: 300px;
 }
 button:hover { 
   background: linear-gradient(90deg, #ff75c4, #a64ddb); 
@@ -127,6 +113,146 @@ button:disabled {
 
 .row { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
 
+/* CHAT SIDEBAR */
+#chat-sidebar {
+  position: fixed;
+  right: -450px;
+  top: 0;
+  width: 400px;
+  height: 100vh;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+  transition: right 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+}
+#chat-sidebar.active {
+  right: 0;
+}
+
+#chat-toggle {
+  position: fixed;
+  right: 20px;
+  top: 80px;
+  z-index: 2999;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(255,90,171,0.5);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(255,90,171,0.5); }
+  50% { box-shadow: 0 4px 30px rgba(255,90,171,0.8); }
+}
+
+.chat-header {
+  padding: 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-status {
+  font-size: 0.85rem;
+  color: var(--header-color);
+  margin-top: 5px;
+}
+
+#chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.message {
+  max-width: 80%;
+  padding: 10px 15px;
+  border-radius: 15px;
+  word-wrap: break-word;
+  animation: messageIn 0.3s;
+}
+
+@keyframes messageIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.message.sent {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #ff5aab, #8a2be2);
+  border-bottom-right-radius: 5px;
+}
+
+.message.received {
+  align-self: flex-start;
+  background: rgba(255,255,255,0.15);
+  border-bottom-left-radius: 5px;
+}
+
+.message-time {
+  font-size: 0.7rem;
+  opacity: 0.6;
+  margin-top: 3px;
+}
+
+.chat-input-area {
+  padding: 15px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  gap: 10px;
+}
+
+#chat-input {
+  flex: 1;
+  margin: 0;
+}
+
+#send-btn {
+  width: 50px;
+  padding: 0;
+  margin: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Room Setup */
+#room-setup {
+  padding: 20px;
+  text-align: center;
+}
+
+#room-code-display {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 1.5rem;
+  color: var(--accent-color);
+  margin: 15px 0;
+  padding: 15px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+#room-code-display:hover {
+  background: rgba(255,255,255,0.15);
+  transform: scale(1.05);
+}
+
+/* Menu */
 #menu-btn {
   position: fixed;
   top: 15px; left: 15px;
@@ -187,6 +313,7 @@ button:disabled {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Sans */
 #sans-container {
   position: relative;
   display: inline-block;
@@ -236,7 +363,7 @@ button:disabled {
   border: 5px solid #ff5aab;
   box-shadow: 0 0 50px #ff5aab;
   border-radius: 20px;
-  z-index: 3000;
+  z-index: 3500;
   opacity: 0;
   transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
   text-align: center;
@@ -262,7 +389,7 @@ button:disabled {
   top: 0; left: 0;
   width: 100%; height: 100%;
   pointer-events: none;
-  z-index: 2500;
+  z-index: 3400;
   overflow: hidden;
 }
 .confetti {
@@ -290,47 +417,6 @@ button:disabled {
 @keyframes socksGradient {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
-}
-
-#history-panel {
-  position: fixed;
-  right: -300px;
-  top: 80px;
-  width: 280px;
-  max-height: 400px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  padding: 15px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-  transition: right 0.3s;
-  z-index: 1998;
-  overflow-y: auto;
-}
-#history-panel.active {
-  right: 15px;
-}
-#history-toggle {
-  position: fixed;
-  right: 15px;
-  top: 15px;
-  z-index: 1999;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-}
-.history-item {
-  background: rgba(255,255,255,0.1);
-  padding: 10px;
-  margin: 8px 0;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  border-left: 3px solid var(--accent-color);
-  word-break: break-word;
 }
 
 #toast-container { position: fixed; top:20px; right:20px; z-index:9999;}
@@ -373,34 +459,6 @@ footer {
 a { color: var(--accent-color); text-decoration: none; transition: all 0.2s;}
 a:hover { color: #fff; transform: scale(1.1);}
 
-#soundboard {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 10px;
-  z-index: 1997;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
-}
-#soundboard.active {
-  opacity: 1;
-  pointer-events: all;
-}
-.sound-btn {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  padding: 0;
-  margin: 0;
-}
-
 .rainbow-mode {
   animation: rainbowBg 5s linear infinite;
 }
@@ -415,96 +473,85 @@ a:hover { color: #fff; transform: scale(1.1);}
 <canvas id="particle-canvas"></canvas>
 
 <button id="menu-btn">≡ Menu</button>
-<button id="history-toggle">📜</button>
+<button id="chat-toggle">💬</button>
 
 <nav id="nav-menu">
   <button data-page="home" class="active">🏠 Главная</button>
-  <button data-page="chat">💬 Чат</button>
-  <button data-page="meme">🎭 Мем</button>
+  <button data-page="setup">🔑 Настройка</button>
 </nav>
 
-<div id="history-panel">
-  <h3 style="margin-top:0; color: var(--accent-color);">История 📜</h3>
-  <div id="history-list"></div>
-  <button id="clearHistoryBtn" style="width:100%; margin-top:10px;">Очистить</button>
+<!-- CHAT SIDEBAR -->
+<div id="chat-sidebar">
+  <div class="chat-header">
+    <div>
+      <h3 style="margin:0;">💬 Secure Chat</h3>
+      <div class="chat-status" id="chat-status">Не подключено</div>
+    </div>
+    <button onclick="closeChatSidebar()" style="width:40px; height:40px; border-radius:50%; padding:0; margin:0;">✖</button>
+  </div>
+  
+  <div id="room-setup">
+    <h4>Создать или подключиться</h4>
+    <button id="create-room-btn">🆕 Создать комнату</button>
+    <div style="margin: 15px 0;">— или —</div>
+    <input type="text" id="join-room-input" placeholder="Введите код комнаты..." maxlength="20">
+    <button id="join-room-btn">🚪 Подключиться</button>
+    
+    <div id="room-code-display" style="display:none;"></div>
+  </div>
+  
+  <div id="chat-messages" style="display:none;"></div>
+  
+  <div class="chat-input-area" style="display:none;" id="chat-input-area">
+    <input type="text" id="chat-input" placeholder="Введите сообщение...">
+    <button id="send-btn">📤</button>
+  </div>
 </div>
 
 <div class="container">
   <div id="home-page" class="page active">
-    <h1>Secure Hax Chat 2.0 🔐✨</h1>
+    <h1>Secure Hax Messenger 💬🔐</h1>
 
-    <div id="socks-message">🧦 SOCKS MODE ACTIVATED! 🧦</div>
+    <div id="socks-message">🧦 SOCKS MODE! 🧦</div>
     <div id="confetti-container"></div>
 
     <div class="card" style="text-align: center;">
-      <h2>🎮 Добро пожаловать, хакер!</h2>
+      <h2>🎮 Реальный мессенджер!</h2>
       <p style="text-align: left;">
-        Это не просто чат. Это <strong>твоя цифровая крепость</strong> с end-to-end шифрованием, мемами и секретными режимами! 
+        Теперь это не просто шифровальщик — это <strong>полноценный мессенджер</strong> с end-to-end шифрованием в реальном времени! 
       </p>
       <p style="text-align: left; color: #ffd6f7;">
-        💀 <strong>Секреты:</strong> Кликай на Sans 3 раза... или введи кодовое слово в чате... 👀
+        💀 <strong>Секреты:</strong> Кликай на Sans 3 раза... или введи "socks" в чате... 👀
       </p>
     </div>
 
     <div class="card">
-      <h2>🛡️ Криптография без компромиссов</h2>
-      <p>
-        Твои ключи генерируются локально. Никто, даже мы, не имеет к ним доступа. 
-        <strong>TweetNaCl</strong> — проверенная временем библиотека для защиты твоих секретов.
-      </p>
+      <h2>🚀 Как начать?</h2>
+      <ol style="text-align: left; line-height: 1.8;">
+        <li>Нажми на кнопку <strong>💬</strong> справа</li>
+        <li>Создай комнату или подключись по коду</li>
+        <li>Поделись кодом комнаты с другом</li>
+        <li>Дождись подключения</li>
+        <li>Общайтесь безопасно! 🔐</li>
+      </ol>
     </div>
   </div>
 
-  <section id="chat-page" class="page">
-    <h1>💬 Secure Chat</h1>
+  <section id="setup-page" class="page">
+    <h1>🔑 Настройка ключей</h1>
 
     <div class="card">
-      <h2>1️⃣ Твои ключи</h2>
-      <button id="gen">🔑 Сгенерировать ключи</button>
-      <button id="resetBtn">🗑️ Сбросить всё</button>
-
-      <div id="pubArea" style="display: none; margin-top: 15px;">
-        <label>📤 Твой публичный ключ</label>
-        <textarea id="myPub" rows="3" readonly></textarea>
-        <button id="copyPub">📋 Копировать</button>
-        <small style="display: block; margin-top: 5px; opacity: 0.7;">
-          Отпечаток: <code id="myFp">Нет ключа</code>
-        </small>
+      <h2>Генерация ключей</h2>
+      <p>Ключи генерируются автоматически при создании комнаты.</p>
+      <button id="manual-gen">🔄 Перегенерировать ключи</button>
+      
+      <div id="key-info" style="margin-top: 15px; display:none;">
+        <label>Ваш публичный ключ:</label>
+        <textarea id="pub-key-display" rows="3" readonly></textarea>
+        <small style="opacity:0.7;">Отпечаток: <code id="key-fp">N/A</code></small>
       </div>
     </div>
-
-    <div class="card">
-      <h2>2️⃣ Ключ собеседника</h2>
-      <textarea id="peerPub" rows="3" placeholder="Вставь публичный ключ собеседника..."></textarea>
-      <button id="importPeer" disabled>📥 Импортировать</button>
-      <small style="display: block; margin-top: 5px; opacity: 0.7;">
-        Отпечаток: <code id="peerFp">Нет ключа</code>
-      </small>
-    </div>
-
-    <div class="card">
-      <h2>3️⃣ Шифрование</h2>
-      <textarea id="plain" rows="4" placeholder="Введи сообщение... (или секретное слово 👀)"></textarea>
-      <button id="encryptBtn" disabled>🔒 Зашифровать</button>
-      <button id="copyCipher" disabled>📋 Копировать</button>
-      <textarea id="cipherout" rows="4" readonly style="margin-top: 10px;"></textarea>
-    </div>
-
-    <div class="card">
-      <h2>4️⃣ Дешифрование</h2>
-      <textarea id="cipherin" rows="4" placeholder="Вставь зашифрованное сообщение..."></textarea>
-      <button id="decryptBtn" disabled>🔓 Дешифровать</button>
-      <textarea id="plainout" rows="4" readonly style="margin-top: 10px;"></textarea>
-    </div>
   </section>
-
-  <div id="meme-page" class="page"></div>
-</div>
-
-<div id="soundboard">
-  <button class="sound-btn" title="Attack!">⚔️</button>
-  <button class="sound-btn" title="Ziel!">🎯</button>
-  <button class="sound-btn" title="Megalovania">💀</button>
 </div>
 
 <div id="toast-container"></div>
@@ -525,11 +572,24 @@ a:hover { color: #fff; transform: scale(1.1);}
   </small>
 </footer>
 
-<script src="nacl.min.js"></script>
-<script src="nacl-util.min.js"></script>
-<script>
-// Ждём загрузки nacl библиотек
-window.addEventListener('load', function() {
+<script src="nacl-min.js"></script>
+<script src="nacl-util.js"></script>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getDatabase, ref, set, onValue, push, serverTimestamp, onDisconnect } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCmC_cXIvvA4EPAezjzsInBf_Ng-V4jwfk",
+  authDomain: "hxchatt.firebaseapp.com",
+  databaseURL: "https://hxchatt-default-rtdb.firebaseio.com",
+  projectId: "hxchatt",
+  storageBucket: "hxchatt.firebasestorage.app",
+  messagingSenderId: "382150861330",
+  appId: "1:382150861330:web:ab20a639246cd48bac6ecb"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
 // ============ STATE ============
 const state = {
@@ -537,7 +597,11 @@ const state = {
   sansClicks: 0,
   socksMode: false,
   rainbowMode: false,
-  history: []
+  myKeyPair: null,
+  peerPublicKey: null,
+  roomId: null,
+  userId: 'user_' + Math.random().toString(36).substr(2, 9),
+  isHost: false
 };
 
 // ============ PARTICLES ============
@@ -600,8 +664,6 @@ function showPage(pageId) {
   });
   const page = document.getElementById(pageId + '-page');
   if(page) page.classList.add('active');
-  
-  document.getElementById('soundboard').classList.toggle('active', pageId === 'chat');
 }
 
 navButtons.forEach(btn => {
@@ -610,6 +672,18 @@ navButtons.forEach(btn => {
     toggleMenu();
   });
 });
+
+// ============ CHAT SIDEBAR ============
+const chatSidebar = document.getElementById('chat-sidebar');
+const chatToggle = document.getElementById('chat-toggle');
+
+chatToggle.addEventListener('click', () => {
+  chatSidebar.classList.toggle('active');
+});
+
+window.closeChatSidebar = function() {
+  chatSidebar.classList.remove('active');
+};
 
 // ============ SANS EASTER EGG ============
 const sansImg = document.getElementById('sans-image');
@@ -665,7 +739,6 @@ function createConfetti(count) {
   }
 }
 
-// ============ SOCKS MODE ============
 function activateSocksMode() {
   if(state.socksMode) return;
   state.socksMode = true;
@@ -678,61 +751,8 @@ function activateSocksMode() {
     socksMsg.classList.remove('active');
   }, 3000);
   
-  showToast('Socks mode активирован! Добро пожаловать 🧦✨', 3000);
+  showToast('Socks mode активирован! 🧦✨', 3000);
 }
-
-// ============ HISTORY ============
-const historyPanel = document.getElementById('history-panel');
-const historyList = document.getElementById('history-list');
-const historyToggle = document.getElementById('history-toggle');
-const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-
-function toggleHistory() {
-  historyPanel.classList.toggle('active');
-}
-
-historyToggle.addEventListener('click', toggleHistory);
-
-function addToHistory(text, type) {
-  state.history.unshift({ text, type, time: new Date().toLocaleTimeString() });
-  if(state.history.length > 5) state.history.pop();
-  updateHistoryUI();
-}
-
-function updateHistoryUI() {
-  historyList.innerHTML = state.history.map(h => `
-    <div class="history-item">
-      <strong>${h.type === 'enc' ? '🔒' : '🔓'}</strong> ${h.time}<br>
-      <small>${h.text.substring(0, 50)}${h.text.length > 50 ? '...' : ''}</small>
-    </div>
-  `).join('');
-}
-
-function handleClearHistory() {
-  state.history = [];
-  updateHistoryUI();
-  showToast('История очищена');
-}
-
-clearHistoryBtn.addEventListener('click', handleClearHistory);
-
-// ============ SOUNDS ============
-const soundButtons = document.querySelectorAll('.sound-btn');
-
-function playSound(type) {
-  const soundTexts = {
-    attack: 'ATTACK THE D POINT!',
-    ziel: 'Ziel zerstört!',
-    mega: '*megalovania intensifies*'
-  };
-  showToast(soundTexts[type] || '🔊', 1500);
-  createConfetti(30);
-}
-
-soundButtons.forEach((btn, idx) => {
-  const types = ['attack', 'ziel', 'mega'];
-  btn.addEventListener('click', () => playSound(types[idx]));
-});
 
 // ============ TOAST ============
 const toastContainer = document.getElementById('toast-container');
@@ -752,284 +772,10 @@ function showToast(msg, ms = 2600) {
 }
 
 // ============ CRYPTO ============
-// Проверяем что nacl загружен
-if(typeof nacl === 'undefined' || typeof nacl.util === 'undefined') {
-  showToast('Ошибка загрузки библиотек криптографии!', 5000);
-  console.error('nacl или nacl.util не загружены');
-  return;
-}
-
-const util = nacl.util;
-const encodeB64 = util.encodeBase64;
-const decodeB64 = util.decodeBase64;
-
-const genBtn = document.getElementById('gen');
-const myPubEl = document.getElementById('myPub');
-const myFpEl = document.getElementById('myFp');
-const copyPubBtn = document.getElementById('copyPub');
-const resetBtn = document.getElementById('resetBtn');
-const pubArea = document.getElementById('pubArea');
-
-const peerPubEl = document.getElementById('peerPub');
-const importPeerBtn = document.getElementById('importPeer');
-const peerFpEl = document.getElementById('peerFp');
-
-const plainEl = document.getElementById('plain');
-const encryptBtn = document.getElementById('encryptBtn');
-const cipherOutEl = document.getElementById('cipherout');
-const copyCipherBtn = document.getElementById('copyCipher');
-
-const cipherInEl = document.getElementById('cipherin');
-const decryptBtn = document.getElementById('decryptBtn');
-const plainOutEl = document.getElementById('plainout');
-
-let myKeyPair = null;
-let peerPubUint8 = null;
-
-const MAX_LEN = 5000;
-const PUB_LEN = 32;
-const NONCE_LEN = 24;
-
-async function sha256hex(u8) {
-  if(!crypto.subtle) return 'N/A';
-  try {
-    const hash = await crypto.subtle.digest('SHA-256', u8);
-    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
-  } catch(e) {
-    console.error('SHA256 error:', e);
-    return 'Error';
-  }
-}
-
-function copyToClipboard(txt) {
-  if(!txt) { showToast('Нечего копировать'); return; }
-  if(navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(txt).then(() => {
-      showToast('Скопировано! 📋');
-      createConfetti(15);
-    }).catch(() => showToast('Ошибка копирования'));
-  } else {
-    // Fallback
-    const temp = document.createElement('textarea');
-    temp.value = txt;
-    document.body.appendChild(temp);
-    temp.select();
-    document.execCommand('copy');
-    document.body.removeChild(temp);
-    showToast('Скопировано! 📋');
-    createConfetti(15);
-  }
-}
-
-function enableButtons() {
-  const hasKeys = !!myKeyPair;
-  const hasPeer = !!peerPubUint8;
-  const hasPlain = plainEl.value.trim().length > 0;
-  
-  importPeerBtn.disabled = !peerPubEl.value.trim();
-  encryptBtn.disabled = !(hasKeys && hasPeer && hasPlain);
-  decryptBtn.disabled = !(hasKeys && hasPeer);
-  copyCipherBtn.disabled = !cipherOutEl.value.trim();
-  
-  pubArea.style.display = hasKeys ? 'block' : 'none';
-  
-  if(!hasKeys) {
-    myFpEl.textContent = 'Нет ключа';
-  }
-  if(!hasPeer) {
-    peerFpEl.textContent = 'Нет ключа';
-  }
-}
-
-function saveKeys() {
-  if(!myKeyPair) return;
-  try {
-    localStorage.setItem('hax_keys', JSON.stringify({
-      pub: encodeB64(myKeyPair.publicKey),
-      sec: encodeB64(myKeyPair.secretKey)
-    }));
-    console.log('Keys saved to localStorage');
-  } catch(e) { 
-    console.error('Save error:', e); 
-    showToast('Ошибка сохранения ключей');
-  }
-}
-
-function loadKeys() {
-  const raw = localStorage.getItem('hax_keys');
-  if(!raw) return false;
-  try {
-    const data = JSON.parse(raw);
-    myKeyPair = {
-      publicKey: decodeB64(data.pub),
-      secretKey: decodeB64(data.sec)
-    };
-    myPubEl.value = data.pub;
-    sha256hex(myKeyPair.publicKey).then(fp => myFpEl.textContent = fp.slice(0,32));
-    showToast('Ключи загружены из хранилища');
-    enableButtons();
-    return true;
-  } catch(e) { 
-    console.error('Load error:', e);
-    return false; 
-  }
-}
-
 function generateKeyPair() {
-  try {
-    const kp = nacl.box.keyPair();
-    myKeyPair = { publicKey: kp.publicKey, secretKey: kp.secretKey };
-    const pubB64 = encodeB64(kp.publicKey);
-    
-    myPubEl.value = pubB64;
-    sha256hex(kp.publicKey).then(fp => myFpEl.textContent = fp.slice(0,32));
-    
-    saveKeys();
-    copyToClipboard(pubB64);
-    showToast('Ключи сгенерированы! 🔑');
-    createConfetti(50);
-    enableButtons();
-  } catch(e) {
-    console.error('Generate error:', e);
-    showToast('Ошибка генерации ключей: ' + e.message);
-  }
+  const kp = nacl.box.keyPair();
+  state.myKeyPair = { publicKey: kp.publicKey, secretKey: kp.secretKey };
+  return nacl.util.encodeBase64(kp.publicKey);
 }
 
-function importPeer() {
-  const txt = peerPubEl.value.trim();
-  if(!txt) { showToast('Вставьте ключ собеседника'); return; }
-  try {
-    const u8 = decodeB64(txt);
-    if(u8.length !== PUB_LEN) throw new Error('Неверная длина ключа (ожидается 32 байта)');
-    peerPubUint8 = u8;
-    sha256hex(u8).then(fp => peerFpEl.textContent = fp.slice(0,32));
-    showToast('Ключ импортирован! 🔓');
-    enableButtons();
-  } catch(e) {
-    console.error('Import error:', e);
-    showToast('Ошибка импорта: ' + e.message);
-  }
-}
-
-function encryptMessage() {
-  const text = plainEl.value.trim();
-  if(!text) { showToast('Введите сообщение'); return; }
-  if(!myKeyPair || !peerPubUint8) { showToast('Нет ключей'); return; }
-  
-  try {
-    // Check for secret code
-    if(text.toLowerCase().includes('socks') || text.toLowerCase().includes('носки')) {
-      activateSocksMode();
-    }
-    
-    const nonce = nacl.randomBytes(NONCE_LEN);
-    
-    // ПРАВИЛЬНОЕ преобразование string → Uint8Array
-    const encoder = new TextEncoder();
-    const msgU8 = encoder.encode(text);
-    
-    const box = nacl.box(msgU8, nonce, peerPubUint8, myKeyPair.secretKey);
-    const result = nacl.util.encodeBase64(nonce) + ':' + nacl.util.encodeBase64(box);
-    
-    cipherOutEl.value = result;
-    plainEl.value = '';
-    
-    addToHistory(text, 'enc');
-    showToast('Зашифровано! 🔒');
-    createConfetti(25);
-    enableButtons();
-  } catch(e) {
-    console.error('Encrypt error:', e);
-    showToast('Ошибка шифрования: ' + e.message);
-  }
-}
-function decryptMessage() {
-  const txt = cipherInEl.value.trim();
-  if(!txt) { showToast('Вставьте шифртекст'); return; }
-  if(!myKeyPair || !peerPubUint8) { showToast('Нет ключей'); return; }
-  
-  try {
-    const clean = txt.replace(/\s+/g, '');
-    const parts = clean.split(':');
-    if(parts.length !== 2) throw new Error('Неверный формат (ожидается nonce:ciphertext)');
-    
-    const nonce = nacl.util.decodeBase64(parts[0]);
-    const ct = nacl.util.decodeBase64(parts[1]);
-    
-    if(nonce.length !== NONCE_LEN) throw new Error('Неверная длина nonce');
-    
-    const msgU8 = nacl.box.open(ct, nonce, peerPubUint8, myKeyPair.secretKey);
-    if(!msgU8) throw new Error('Дешифровка не удалась (неверный ключ или повреждённые данные)');
-    
-    // ПРАВИЛЬНОЕ преобразование Uint8Array → string
-    const decoder = new TextDecoder();
-    const text = decoder.decode(msgU8);
-    
-    plainOutEl.value = text;
-    cipherInEl.value = '';
-    
-    addToHistory(text, 'dec');
-    showToast('Расшифровано! 🔓');
-    createConfetti(25);
-  } catch(e) {
-    console.error('Decrypt error:', e);
-    showToast('Ошибка дешифрования: ' + e.message);
-  }
-}
-
-function clearAll() {
-  if(!confirm('Удалить все ключи и данные?')) return;
-  localStorage.clear();
-  myKeyPair = null;
-  peerPubUint8 = null;
-  myPubEl.value = '';
-  peerPubEl.value = '';
-  cipherOutEl.value = '';
-  cipherInEl.value = '';
-  plainEl.value = '';
-  plainOutEl.value = '';
-  myFpEl.textContent = 'Нет ключа';
-  peerFpEl.textContent = 'Нет ключа';
-  showToast('Всё очищено! 🗑️');
-  enableButtons();
-}
-
-// Event Listeners
-genBtn.addEventListener('click', generateKeyPair);
-resetBtn.addEventListener('click', clearAll);
-copyPubBtn.addEventListener('click', () => copyToClipboard(myPubEl.value));
-importPeerBtn.addEventListener('click', importPeer);
-encryptBtn.addEventListener('click', encryptMessage);
-copyCipherBtn.addEventListener('click', () => copyToClipboard(cipherOutEl.value));
-decryptBtn.addEventListener('click', decryptMessage);
-
-peerPubEl.addEventListener('input', enableButtons);
-plainEl.addEventListener('input', enableButtons);
-cipherOutEl.addEventListener('input', enableButtons);
-
-plainEl.addEventListener('keydown', e => {
-  if(e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    if(!encryptBtn.disabled) encryptMessage();
-  }
-});
-
-cipherInEl.addEventListener('keydown', e => {
-  if(e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    if(!decryptBtn.disabled) decryptMessage();
-  }
-});
-
-// Init
-loadKeys();
-enableButtons();
-showPage('home');
-
-console.log('Secure Hax Chat initialized!');
-console.log('nacl version:', nacl.version || 'unknown');
-
-}); // end window.load
-</script>
-</body>
-</html>
+async function sha256hex(u
