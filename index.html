@@ -899,6 +899,7 @@ const firebaseConfig = {
   appId: "1:382150861330:web:ab20a639246cd48bac6ecb"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
@@ -970,6 +971,7 @@ function showRoomStatus() {
 }
 
 // Auto-show room status when chat is opened on mobile
+const chatToggle = document.getElementById('chat-toggle');
 chatToggle.addEventListener('click', () => {
   setTimeout(() => {
     checkMobile();
@@ -1041,6 +1043,7 @@ function showPage(pageId) {
 
 navButtons.forEach(btn => {
   btn.addEventListener('click', (e) => {
+    e.preventDefault();
     showPage(e.target.getAttribute('data-page'));
     toggleMenu();
   });
@@ -1048,7 +1051,6 @@ navButtons.forEach(btn => {
 
 // ============ CHAT SIDEBAR ============
 const chatSidebar = document.getElementById('chat-sidebar');
-const chatToggle = document.getElementById('chat-toggle');
 
 chatToggle.addEventListener('click', () => {
   chatSidebar.classList.toggle('active');
@@ -1367,7 +1369,7 @@ function startChat() {
     if(snapshot.exists()) {
       const typing = snapshot.val();
       // Check if OTHER user is typing
-      const otherUserTyping = Object.keys(typing).some(uid =>
+      const otherUserTyping = Object.keys(typing).some(uid => 
         uid !== state.userId && typing[uid] === true
       );
       
@@ -1494,30 +1496,28 @@ document.getElementById('manual-gen').addEventListener('click', () => {
   createConfetti(30);
 });
 
-// ============ PAGE VISIBILITY & MOBILE OPTIMIZATIONS ============
-document.addEventListener('visibilitychange', () => {
-  checkMobile();
-  if (document.visibilityState === 'visible') {
-    // Page became visible - check status
-    setTimeout(checkMobile, 100);
-  }
-});
-
-// Handle page unload
-window.addEventListener('beforeunload', () => {
-  if (state.roomId) {
-    const userPath = state.isHost ? 'host' : 'guest';
-    set(ref(db, `rooms/${state.roomId}/${userPath}/online`), false);
-  }
-});
-
-// Initialize mobile detection on load
-checkMobile();
-
 // ============ INIT ============
-showPage('home');
-console.log('Secure Hax Messenger initialized! 💬🔐');
-console.log('Mobile mode:', state.isMobile ? 'ON' : 'OFF');
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('Secure Hax Messenger initialized! 💬🔐');
+  console.log('Mobile mode:', state.isMobile ? 'ON' : 'OFF');
+  showPage('home');
+  checkMobile();
+  
+  // Page visibility and mobile optimizations
+  document.addEventListener('visibilitychange', () => {
+    checkMobile();
+    if (document.visibilityState === 'visible') {
+      setTimeout(checkMobile, 100);
+    }
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (state.roomId) {
+      const userPath = state.isHost ? 'host' : 'guest';
+      set(ref(db, `rooms/${state.roomId}/${userPath}/online`), false);
+    }
+  });
+});
 </script>
 </body>
 </html>
