@@ -1814,6 +1814,10 @@ function makeChoice(choice) {
   showToast(`Вы выбрали: ${getChoiceName(choice)} ✊`);
 }
 
+// Make functions available globally for onclick handlers
+window.makeChoice = makeChoice;
+window.closeGameModal = closeGameModal;
+
 function getChoiceName(choice) {
   const names = {
     'rock': '🪨 Камень',
