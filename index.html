@@ -1140,7 +1140,7 @@ a:hover { color: #fff; transform: scale(1.1);}
   <div class="game-content">
     <div class="game-header">
       <h3 id="game-title">Игра Камень-Ножницы-Бумага</h3>
-      <button class="close-game" onclick="closeGameModal()">✖</button>
+      <button class="close-game" id="close-game-btn">✖</button>
     </div>
     <div class="game-body">
       <div id="game-status"></div>
@@ -1150,9 +1150,9 @@ a:hover { color: #fff; transform: scale(1.1);}
         <span id="opponent-score">Счет противника: 0</span>
       </div>
       <div class="game-choices" id="game-choices">
-        <button class="choice-btn" onclick="makeChoice('rock')">🪨 Камень</button>
-        <button class="choice-btn" onclick="makeChoice('paper')">📄 Бумага</button>
-        <button class="choice-btn" onclick="makeChoice('scissors')">✂️ Ножницы</button>
+        <button class="choice-btn" data-choice="rock">🪨 Камень</button>
+        <button class="choice-btn" data-choice="paper">📄 Бумага</button>
+        <button class="choice-btn" data-choice="scissors">✂️ Ножницы</button>
       </div>
       <div class="game-actions">
         <button id="accept-game-btn" class="game-btn primary">Играть!</button>
@@ -1814,10 +1814,6 @@ function makeChoice(choice) {
   showToast(`Вы выбрали: ${getChoiceName(choice)} ✊`);
 }
 
-// Make functions available globally for onclick handlers
-window.makeChoice = makeChoice;
-window.closeGameModal = closeGameModal;
-
 function getChoiceName(choice) {
   const names = {
     'rock': '🪨 Камень',
@@ -2354,6 +2350,16 @@ document.addEventListener('DOMContentLoaded', function() {
   showPage('home');
   checkMobile();
   loadTheme(); // Load saved theme
+  
+  // Setup game button listeners
+  document.getElementById('close-game-btn').addEventListener('click', closeGameModal);
+  
+  document.querySelectorAll('.choice-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const choice = this.getAttribute('data-choice');
+      makeChoice(choice);
+    });
+  });
   
   // Page visibility and mobile optimizations
   document.addEventListener('visibilitychange', () => {
