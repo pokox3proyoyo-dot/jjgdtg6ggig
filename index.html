@@ -134,7 +134,7 @@ button:disabled {
 
 #chat-toggle {
   position: fixed;
-  right: 10px;
+  right: 20px;
   top: 80px;
   z-index: 2999;
   width: 60px;
@@ -165,6 +165,42 @@ button:disabled {
   font-size: 0.85rem;
   color: var(--header-color);
   margin-top: 5px;
+}
+
+.typing-indicator {
+  padding: 10px 15px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 15px;
+  align-self: flex-start;
+  display: none;
+  align-items: center;
+  gap: 5px;
+  animation: fadeIn 0.3s;
+}
+
+.typing-indicator.show {
+  display: flex;
+}
+
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--accent-color);
+  border-radius: 50%;
+  animation: typingBounce 1.4s infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-10px); }
 }
 
 #chat-messages {
@@ -466,11 +502,6 @@ a:hover { color: #fff; transform: scale(1.1);}
   0% { filter: hue-rotate(0deg); }
   100% { filter: hue-rotate(360deg); }
 }
-@media (max-width: 450px) {
-  #chat-sidebar {
-    width: 90vw;
-    right: -90vw;
-  }
 </style>
 </head>
 <body>
@@ -505,7 +536,14 @@ a:hover { color: #fff; transform: scale(1.1);}
     <div id="room-code-display" style="display:none;"></div>
   </div>
   
-  <div id="chat-messages" style="display:none;"></div>
+  <div id="chat-messages" style="display:none;">
+    <div class="typing-indicator" id="typing-indicator">
+      <span style="font-size: 0.85rem;">Печатает</span>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    </div>
+  </div>
   
   <div class="chat-input-area" style="display:none;" id="chat-input-area">
     <input type="text" id="chat-input" placeholder="Введите сообщение...">
@@ -521,24 +559,85 @@ a:hover { color: #fff; transform: scale(1.1);}
     <div id="confetti-container"></div>
 
     <div class="card" style="text-align: center;">
-      <h2>🎮 Реальный мессенджер!</h2>
+      <h2>🎮 Добро пожаловать в будущее мессенджеров!</h2>
       <p style="text-align: left;">
-        Теперь это не просто шифровальщик — это <strong>полноценный мессенджер</strong> с end-to-end шифрованием в реальном времени! 
+        <strong>Secure Hax Messenger</strong> — это не просто чат. Это полноценный мессенджер с <strong>военным уровнем шифрования</strong>, работающий в реальном времени прямо в браузере!
       </p>
-      <p style="text-align: left; color: #ffd6f7;">
-        💀 <strong>Секреты:</strong> Кликай на Sans 3 раза... или введи "socks" в чате... 👀
-      </p>
+      <div style="margin: 20px 0; padding: 15px; background: rgba(255,90,171,0.1); border-radius: 10px; border-left: 4px solid var(--accent-color);">
+        <strong>🔒 Почему это безопасно?</strong><br>
+        Все сообщения шифруются <strong>end-to-end</strong> с помощью TweetNaCl. Даже сервер не видит содержимое ваших сообщений!
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>✨ Возможности</h2>
+      <div style="display: grid; gap: 15px; margin-top: 15px;">
+        <div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+          <strong>🔐 End-to-End шифрование</strong><br>
+          <small>Ваши ключи генерируются локально. Никто не имеет к ним доступа.</small>
+        </div>
+        <div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+          <strong>⚡ Мгновенные сообщения</strong><br>
+          <small>Технология Firebase Realtime Database для обмена в реальном времени.</small>
+        </div>
+        <div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+          <strong>🚫 Без регистрации</strong><br>
+          <small>Никаких номеров телефонов, email или персональных данных.</small>
+        </div>
+        <div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+          <strong>👀 Индикатор печати</strong><br>
+          <small>Видите когда собеседник печатает сообщение (как в Telegram!).</small>
+        </div>
+        <div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+          <strong>🎨 Красивый интерфейс</strong><br>
+          <small>Современный дизайн с анимациями и спецэффектами.</small>
+        </div>
+        <div style="padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+          <strong>🧦 Секретные режимы</strong><br>
+          <small>Easter eggs и скрытые функции для самых внимательных...</small>
+        </div>
+      </div>
     </div>
 
     <div class="card">
       <h2>🚀 Как начать?</h2>
-      <ol style="text-align: left; line-height: 1.8;">
-        <li>Нажми на кнопку <strong>💬</strong> справа</li>
-        <li>Создай комнату или подключись по коду</li>
-        <li>Поделись кодом комнаты с другом</li>
-        <li>Дождись подключения</li>
-        <li>Общайтесь безопасно! 🔐</li>
+      <ol style="text-align: left; line-height: 2; font-size: 1.05rem;">
+        <li><strong>Нажмите на кнопку 💬</strong> в правом верхнем углу</li>
+        <li><strong>Создайте комнату</strong> — получите уникальный код (например: HAX-A1B2C3)</li>
+        <li><strong>Поделитесь кодом</strong> с другом любым способом</li>
+        <li><strong>Дождитесь подключения</strong> — увидите статус "🟢 Подключено!"</li>
+        <li><strong>Общайтесь безопасно!</strong> Все сообщения зашифрованы 🔐</li>
       </ol>
+    </div>
+
+    <div class="card">
+      <h2>🛡️ Технологии</h2>
+      <p style="text-align: left; line-height: 1.8;">
+        <strong>TweetNaCl</strong> — криптографическая библиотека, используемая в Signal и других защищённых мессенджерах.<br>
+        <strong>Firebase Realtime Database</strong> — для синхронизации в реальном времени.<br>
+        <strong>Asymmetric Encryption</strong> — публичные/приватные ключи для безопасного обмена.<br>
+        <strong>Client-side only</strong> — весь код выполняется в вашем браузере.
+      </p>
+    </div>
+
+    <div class="card" style="background: rgba(255,90,171,0.1); border: 2px solid var(--accent-color);">
+      <h2>⚠️ Важно знать</h2>
+      <ul style="text-align: left; line-height: 1.8;">
+        <li>Сообщения <strong>не сохраняются</strong> после закрытия комнаты</li>
+        <li>Один код комнаты = <strong>одна пара</strong> собеседников</li>
+        <li>Не делитесь кодом комнаты публично</li>
+        <li>Храните свои ключи в безопасности</li>
+        <li>Это <strong>beta-версия</strong> — возможны баги</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>🎭 Пасхалки</h2>
+      <p style="text-align: left; color: var(--header-color);">
+        💀 Кликни на <strong>Sans</strong> внизу страницы 3 раза...<br>
+        🧦 Введи слово "<strong>socks</strong>" в чате...<br>
+        🎵 Исследуй интерфейс — найдёшь ещё сюрпризы!
+      </p>
     </div>
   </div>
 
@@ -577,8 +676,8 @@ a:hover { color: #fff; transform: scale(1.1);}
   </small>
 </footer>
 
-<script src=nacl.min.js></script>
-<script src=nacl-util.min.js></script>
+<script src="nacl-min.js"></script>
+<script src="nacl-util.js"></script>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getDatabase, ref, set, onValue, push, serverTimestamp, onDisconnect } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
@@ -825,6 +924,23 @@ const roomCodeDisplay = document.getElementById('room-code-display');
 const createRoomBtn = document.getElementById('create-room-btn');
 const joinRoomBtn = document.getElementById('join-room-btn');
 const joinRoomInput = document.getElementById('join-room-input');
+const typingIndicator = document.getElementById('typing-indicator');
+
+let typingTimeout = null;
+
+// Typing indicator logic
+chatInput.addEventListener('input', () => {
+  if(!state.roomId) return;
+  
+  // Set typing status
+  set(ref(db, `rooms/${state.roomId}/typing/${state.userId}`), true);
+  
+  // Clear after 2 seconds
+  clearTimeout(typingTimeout);
+  typingTimeout = setTimeout(() => {
+    set(ref(db, `rooms/${state.roomId}/typing/${state.userId}`), false);
+  }, 2000);
+});
 
 function generateRoomCode() {
   return 'HAX-' + Math.random().toString(36).substr(2, 6).toUpperCase();
@@ -933,19 +1049,41 @@ function startChat() {
   chatMessages.style.display = 'flex';
   chatInputArea.style.display = 'flex';
   
+  // Listen for typing indicator
+  const typingRef = ref(db, `rooms/${state.roomId}/typing`);
+  onValue(typingRef, (snapshot) => {
+    if(snapshot.exists()) {
+      const typing = snapshot.val();
+      // Check if OTHER user is typing
+      const otherUserTyping = Object.keys(typing).some(uid => 
+        uid !== state.userId && typing[uid] === true
+      );
+      
+      if(otherUserTyping) {
+        typingIndicator.classList.add('show');
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      } else {
+        typingIndicator.classList.remove('show');
+      }
+    }
+  });
+  
   // Listen for messages
   const messagesRef = ref(db, `rooms/${state.roomId}/messages`);
   onValue(messagesRef, (snapshot) => {
-    chatMessages.innerHTML = '';
+    // Clear messages but keep typing indicator
+    const messages = chatMessages.querySelectorAll('.message');
+    messages.forEach(m => m.remove());
+    
     if(snapshot.exists()) {
-      const messages = [];
+      const messagesList = [];
       snapshot.forEach((child) => {
-        messages.push({ id: child.key, ...child.val() });
+        messagesList.push({ id: child.key, ...child.val() });
       });
       
-      messages.sort((a, b) => a.timestamp - b.timestamp);
+      messagesList.sort((a, b) => a.timestamp - b.timestamp);
       
-      messages.forEach(msg => {
+      messagesList.forEach(msg => {
         try {
           const decrypted = decryptMessage(msg.ciphertext);
           
@@ -960,6 +1098,8 @@ function startChat() {
         }
       });
     }
+    
+    chatMessages.scrollTop = chatMessages.scrollHeight;
   });
 }
 
@@ -987,6 +1127,9 @@ async function sendMessage() {
   if(!text) return;
   
   try {
+    // Clear typing indicator immediately
+    await set(ref(db, `rooms/${state.roomId}/typing/${state.userId}`), false);
+    
     const encrypted = encryptMessage(text);
     
     const messageRef = push(ref(db, `rooms/${state.roomId}/messages`));
