@@ -134,7 +134,7 @@ button:disabled {
 
 #chat-toggle {
   position: fixed;
-  right: 20px;
+  right: 10px;
   top: 80px;
   z-index: 2999;
   width: 60px;
@@ -466,6 +466,11 @@ a:hover { color: #fff; transform: scale(1.1);}
   0% { filter: hue-rotate(0deg); }
   100% { filter: hue-rotate(360deg); }
 }
+@media (max-width: 450px) {
+  #chat-sidebar {
+    width: 90vw;
+    right: -90vw;
+  }
 </style>
 </head>
 <body>
