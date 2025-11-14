@@ -15,6 +15,7 @@
   --accent-color: #ff5aab;
   --button-gradient: linear-gradient(90deg, #ff5aab, #8a2be2);
   --success-color: #4CAF50;
+  --mobile-breakpoint: 768px;
 }
 
 * { box-sizing: border-box; }
@@ -502,6 +503,203 @@ a:hover { color: #fff; transform: scale(1.1);}
   0% { filter: hue-rotate(0deg); }
   100% { filter: hue-rotate(360deg); }
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 1.5rem;
+    margin-top: 16px;
+  }
+  
+  .container {
+    width: 95%;
+    margin: 12px auto;
+    padding-bottom: 80px;
+  }
+  
+  .card {
+    padding: 16px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+  }
+  
+  #menu-btn {
+    top: 10px;
+    left: 10px;
+    min-width: 80px;
+    height: 45px;
+    font-size: 1rem;
+  }
+  
+  #nav-menu {
+    top: 60px;
+    left: 10px;
+    padding: 12px;
+  }
+  
+  #nav-menu button {
+    width: 140px;
+    padding: 8px 12px;
+  }
+  
+  /* Mobile Chat Sidebar - Full Screen */
+  #chat-sidebar {
+    position: fixed;
+    right: -100%;
+    top: 0;
+    width: 100%;
+    height: 100vh;
+    transition: right 0.3s ease;
+  }
+  
+  #chat-sidebar.active {
+    right: 0;
+  }
+  
+  #chat-toggle {
+    right: 15px;
+    top: 70px;
+    width: 55px;
+    height: 55px;
+    font-size: 1.3rem;
+  }
+  
+  .chat-header {
+    padding: 16px;
+  }
+  
+  #chat-messages {
+    padding: 12px;
+  }
+  
+  .message {
+    max-width: 85%;
+    padding: 8px 12px;
+  }
+  
+  .chat-input-area {
+    padding: 12px;
+  }
+  
+  /* Room Status Indicator */
+  .room-status-indicator {
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2001;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(15px);
+    border-radius: 25px;
+    padding: 8px 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    transition: all 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  .room-status-indicator.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+  
+  .room-status-ball {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #ff5aab;
+    animation: pulse 2s infinite;
+    box-shadow: 0 0 8px rgba(255,90,171,0.6);
+  }
+  
+  .room-status-ball.online {
+    background: #4CAF50;
+    box-shadow: 0 0 8px rgba(76,175,80,0.6);
+  }
+  
+  .room-status-ball.offline {
+    background: #f44336;
+    box-shadow: 0 0 8px rgba(244,67,54,0.6);
+  }
+  
+  .room-name {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--header-color);
+    font-weight: 600;
+  }
+  
+  .participants-count {
+    font-size: 0.8rem;
+    color: var(--text-color);
+    opacity: 0.8;
+  }
+  
+  /* Mobile Footer */
+  footer {
+    margin: 16px 0;
+    padding-bottom: 30px;
+  }
+  
+  .footer-links {
+    gap: 15px;
+  }
+  
+  #sans-image {
+    width: 40px;
+    height: 40px;
+  }
+  
+  /* Better mobile scrolling */
+  .page {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Mobile toast positioning */
+  #toast-container {
+    top: 15px;
+    right: 15px;
+    left: 15px;
+  }
+  
+  .toast {
+    margin-top: 5px;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .container {
+    width: 98%;
+    margin: 8px auto;
+  }
+  
+  .card {
+    padding: 12px;
+    border-radius: 10px;
+  }
+  
+  h1 {
+    font-size: 1.3rem;
+  }
+  
+  #chat-toggle {
+    width: 50px;
+    height: 50px;
+    font-size: 1.2rem;
+  }
+  
+  .room-status-indicator {
+    padding: 6px 12px;
+  }
+  
+  .room-name {
+    font-size: 0.8rem;
+  }
+}
 </style>
 </head>
 <body>
@@ -510,6 +708,15 @@ a:hover { color: #fff; transform: scale(1.1);}
 
 <button id="menu-btn">≡ Menu</button>
 <button id="chat-toggle">💬</button>
+
+<!-- Room Status Indicator -->
+<div class="room-status-indicator" id="room-status-indicator">
+  <div class="room-status-ball" id="room-status-ball"></div>
+  <div class="room-info">
+    <div class="room-name" id="room-name">No Room</div>
+    <div class="participants-count" id="participants-count">0 participants</div>
+  </div>
+</div>
 
 <nav id="nav-menu">
   <button data-page="home" class="active">🏠 Главная</button>
@@ -705,8 +912,69 @@ const state = {
   peerPublicKey: null,
   roomId: null,
   userId: 'user_' + Math.random().toString(36).substr(2, 9),
-  isHost: false
+  isHost: false,
+  isMobile: window.innerWidth <= 768,
+  participants: 0,
+  peerOnline: false,
+  peerLeft: false
 };
+
+// Mobile Detection and Responsive Behavior
+function checkMobile() {
+  state.isMobile = window.innerWidth <= 768;
+  
+  if (state.isMobile && state.roomId) {
+    // Auto-show room status indicator on mobile when in chat
+    document.getElementById('room-status-indicator').classList.add('show');
+  } else {
+    document.getElementById('room-status-indicator').classList.remove('show');
+  }
+}
+
+// Room Status Indicator Functions
+function updateRoomStatus() {
+  const indicator = document.getElementById('room-status-indicator');
+  const statusBall = document.getElementById('room-status-ball');
+  const roomName = document.getElementById('room-name');
+  const participantsCount = document.getElementById('participants-count');
+  
+  if (!state.roomId) {
+    indicator.classList.remove('show');
+    return;
+  }
+  
+  roomName.textContent = state.roomId;
+  
+  // Update status ball based on peer status
+  statusBall.className = 'room-status-ball';
+  if (state.peerLeft) {
+    statusBall.classList.add('offline');
+  } else if (state.peerOnline) {
+    statusBall.classList.add('online');
+  } else {
+    statusBall.classList.add('offline');
+  }
+  
+  // Update participants count
+  const count = state.peerOnline ? 2 : (state.peerLeft ? 1 : 1);
+  participantsCount.textContent = `${count} participant${count !== 1 ? 's' : ''}`;
+  
+  // Show indicator on mobile
+  if (state.isMobile) {
+    indicator.classList.add('show');
+  }
+}
+
+function showRoomStatus() {
+  updateRoomStatus();
+}
+
+// Auto-show room status when chat is opened on mobile
+chatToggle.addEventListener('click', () => {
+  setTimeout(() => {
+    checkMobile();
+  }, 100);
+});
 
 // ============ PARTICLES ============
 const canvas = document.getElementById('particle-canvas');
@@ -744,6 +1012,7 @@ animateParticles();
 window.addEventListener('resize', () => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+  checkMobile();
 });
 
 // ============ NAVIGATION ============
@@ -983,10 +1252,29 @@ createRoomBtn.addEventListener('click', async () => {
       if(snapshot.exists()) {
         const guest = snapshot.val();
         state.peerPublicKey = nacl.util.decodeBase64(guest.publicKey);
-        chatStatus.textContent = '🟢 Подключено! Чат начат!';
+        state.peerOnline = guest.online !== false;
+        state.peerLeft = !guest.online;
+        
+        chatStatus.textContent = state.peerOnline ? '🟢 Подключено! Чат начат!' : '🔴 Собеседник офлайн';
         showToast('Собеседник подключился! 🎉');
         createConfetti(50);
+        showRoomStatus();
         startChat();
+        
+        // Track guest online status
+        onValue(ref(db, `rooms/${roomCode}/guest/online`), (onlineSnapshot) => {
+          state.peerOnline = onlineSnapshot.val() !== false;
+          state.peerLeft = !state.peerOnline;
+          
+          if (!state.peerOnline) {
+            chatStatus.textContent = '🔴 Собеседник офлайн';
+            showToast('Собеседник покинул чат', 4000);
+            createConfetti(30);
+          } else {
+            chatStatus.textContent = '🟢 Подключено! Чат начат!';
+          }
+          showRoomStatus();
+        });
       }
     });
     
@@ -1023,6 +1311,8 @@ joinRoomBtn.addEventListener('click', async () => {
       // Get host public key
       if(room.host && room.host.publicKey) {
         state.peerPublicKey = nacl.util.decodeBase64(room.host.publicKey);
+        state.peerOnline = room.host.online !== false;
+        state.peerLeft = !room.host.online;
         
         // Join as guest
         await set(ref(db, `rooms/${roomCode}/guest`), {
@@ -1031,10 +1321,26 @@ joinRoomBtn.addEventListener('click', async () => {
           online: true
         });
         
-        chatStatus.textContent = '🟢 Подключено! Чат начат!';
+        chatStatus.textContent = state.peerOnline ? '🟢 Подключено! Чат начат!' : '🔴 Хост офлайн';
         showToast('Подключились к комнате! 🎉');
         createConfetti(50);
+        showRoomStatus();
         startChat();
+        
+        // Track host online status
+        onValue(ref(db, `rooms/${roomCode}/host/online`), (onlineSnapshot) => {
+          state.peerOnline = onlineSnapshot.val() !== false;
+          state.peerLeft = !state.peerOnline;
+          
+          if (!state.peerOnline) {
+            chatStatus.textContent = '🔴 Хост офлайн';
+            showToast('Хост покинул чат', 4000);
+            createConfetti(30);
+          } else {
+            chatStatus.textContent = '🟢 Подключено! Чат начат!';
+          }
+          showRoomStatus();
+        });
       }
     }, { onlyOnce: true });
     
@@ -1049,13 +1355,19 @@ function startChat() {
   chatMessages.style.display = 'flex';
   chatInputArea.style.display = 'flex';
   
+  // Show room status indicator on mobile
+  showRoomStatus();
+  
+  // Set up online status tracking
+  setupOnlineStatusTracking();
+  
   // Listen for typing indicator
   const typingRef = ref(db, `rooms/${state.roomId}/typing`);
   onValue(typingRef, (snapshot) => {
     if(snapshot.exists()) {
       const typing = snapshot.val();
       // Check if OTHER user is typing
-      const otherUserTyping = Object.keys(typing).some(uid => 
+      const otherUserTyping = Object.keys(typing).some(uid =>
         uid !== state.userId && typing[uid] === true
       );
       
@@ -1100,6 +1412,30 @@ function startChat() {
     }
     
     chatMessages.scrollTop = chatMessages.scrollHeight;
+  });
+}
+
+function setupOnlineStatusTracking() {
+  if (!state.roomId) return;
+  
+  const userPath = state.isHost ? 'host' : 'guest';
+  
+  // Track my own online status
+  onDisconnect(ref(db, `rooms/${state.roomId}/${userPath}/online`)).set(false);
+  
+  // Track peer online status
+  const peerPath = state.isHost ? 'guest' : 'host';
+  onValue(ref(db, `rooms/${state.roomId}/${peerPath}/online`), (snapshot) => {
+    const isOnline = snapshot.val() !== false;
+    state.peerOnline = isOnline;
+    state.peerLeft = !isOnline;
+    
+    chatStatus.textContent = isOnline ? '🟢 Подключено! Чат начат!' : '🔴 Собеседник офлайн';
+    showRoomStatus();
+    
+    if (!isOnline) {
+      showToast('Собеседник покинул чат', 4000);
+    }
   });
 }
 
@@ -1158,9 +1494,30 @@ document.getElementById('manual-gen').addEventListener('click', () => {
   createConfetti(30);
 });
 
+// ============ PAGE VISIBILITY & MOBILE OPTIMIZATIONS ============
+document.addEventListener('visibilitychange', () => {
+  checkMobile();
+  if (document.visibilityState === 'visible') {
+    // Page became visible - check status
+    setTimeout(checkMobile, 100);
+  }
+});
+
+// Handle page unload
+window.addEventListener('beforeunload', () => {
+  if (state.roomId) {
+    const userPath = state.isHost ? 'host' : 'guest';
+    set(ref(db, `rooms/${state.roomId}/${userPath}/online`), false);
+  }
+});
+
+// Initialize mobile detection on load
+checkMobile();
+
 // ============ INIT ============
 showPage('home');
 console.log('Secure Hax Messenger initialized! 💬🔐');
+console.log('Mobile mode:', state.isMobile ? 'ON' : 'OFF');
 </script>
 </body>
 </html>
