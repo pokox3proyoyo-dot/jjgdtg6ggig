@@ -1403,7 +1403,6 @@ body::after {
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getDatabase, ref, set, onValue, push, serverTimestamp, onDisconnect } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCmC_cXIvvA4EPAezjzsInBf_Ng-V4jwfk",
@@ -1418,7 +1417,6 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const storage = getStorage(app);
 
 // ============ STATE ============
 const state = {
@@ -1657,25 +1655,26 @@ async function sendVoiceMessage(audioBlob) {
   try {
     showToast('⏳ Отправка голосового сообщения...');
     
-    // Upload to Firebase Storage
-    const fileName = `voice_${state.userId}_${Date.now()}.webm`;
-    const audioRef = storageRef(storage, `rooms/${state.roomId}/${fileName}`);
+    // Convert audio to base64
+    const reader = new FileReader();
+    reader.readAsDataURL(audioBlob);
     
-    await uploadBytes(audioRef, audioBlob);
-    const audioURL = await getDownloadURL(audioRef);
-    
-    // Send message with audio URL
-    const encrypted = encryptMessage(`[VOICE]:${audioURL}`);
-    
-    const messageRef = push(ref(db, `rooms/${state.roomId}/messages`));
-    await set(messageRef, {
-      sender: state.userId,
-      ciphertext: encrypted,
-      type: 'voice',
-      timestamp: serverTimestamp()
-    });
-    
-    showToast('✅ Голосовое сообщение отправлено!');
+    reader.onloadend = async () => {
+      const base64Audio = reader.result; // data:audio/webm;base64,xxxxx
+      
+      // Send message with base64 audio
+      const encrypted = encryptMessage(`[VOICE]:${base64Audio}`);
+      
+      const messageRef = push(ref(db, `rooms/${state.roomId}/messages`));
+      await set(messageRef, {
+        sender: state.userId,
+        ciphertext: encrypted,
+        type: 'voice',
+        timestamp: serverTimestamp()
+      });
+      
+      showToast('✅ Голосовое сообщение отправлено!');
+    };
     
   } catch(err) {
     console.error('Ошибка отправки:', err);
@@ -2426,12 +2425,12 @@ function displayMessage(text, isSent) {
   
   // Check if voice message
   if (text.startsWith('[VOICE]:')) {
-    const audioURL = text.substring(8);
+    const base64Audio = text.substring(8); // data:audio/webm;base64,xxxxx
     msgDiv.innerHTML = `
       <div style="display: flex; align-items: center; gap: 10px;">
         <span>🎤</span>
         <audio controls style="max-width: 200px; height: 32px;">
-          <source src="${audioURL}" type="audio/webm">
+          <source src="${base64Audio}" type="audio/webm">
         </audio>
       </div>
       <div class="message-time">${new Date().toLocaleTimeString()}</div>
