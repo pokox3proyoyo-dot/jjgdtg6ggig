@@ -197,24 +197,87 @@ button:disabled {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Voice message audio player */
-.message audio {
-  background: rgba(255,255,255,0.1);
-  border-radius: 25px;
-  outline: none;
+/* Custom Voice Message Player */
+.voice-player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  min-width: 200px;
+  max-width: 280px;
+  position: relative;
 }
 
-.message audio::-webkit-media-controls-panel {
-  background: rgba(255,255,255,0.1);
-  border-radius: 25px;
+.voice-play-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.2s;
+  flex-shrink: 0;
 }
 
-.message.sent audio {
-  background: rgba(0,0,0,0.2);
+.voice-play-btn:hover {
+  background: rgba(255,255,255,0.3);
+  transform: scale(1.05);
 }
 
-.message.received audio {
-  background: rgba(255,255,255,0.15);
+.voice-play-btn:active {
+  transform: scale(0.95);
+}
+
+.message.sent .voice-play-btn {
+  background: rgba(0,0,0,0.3);
+}
+
+.message.sent .voice-play-btn:hover {
+  background: rgba(0,0,0,0.4);
+}
+
+.voice-waveform {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 32px;
+  position: relative;
+}
+
+.voice-wave-bar {
+  width: 3px;
+  background: rgba(255,255,255,0.4);
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+
+.message.sent .voice-wave-bar {
+  background: rgba(255,255,255,0.6);
+}
+
+.voice-wave-bar.active {
+  background: rgba(255,255,255,0.9);
+}
+
+.message.sent .voice-wave-bar.active {
+  background: rgba(255,255,255,1);
+}
+
+.voice-duration {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  font-family: 'Roboto Mono', monospace;
+  min-width: 35px;
+  text-align: right;
+}
+
+.voice-player audio {
+  display: none;
 }
 
 .message.sent {
@@ -2426,15 +2489,28 @@ function displayMessage(text, isSent) {
   // Check if voice message
   if (text.startsWith('[VOICE]:')) {
     const base64Audio = text.substring(8); // data:audio/webm;base64,xxxxx
+    const playerId = 'voice-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    
+    // Create waveform bars (random heights for visual effect)
+    const bars = Array.from({length: 25}, () => {
+      const height = 8 + Math.random() * 20;
+      return `<div class="voice-wave-bar" style="height: ${height}px;"></div>`;
+    }).join('');
+    
     msgDiv.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <span>🎤</span>
-        <audio controls style="max-width: 200px; height: 32px;">
+      <div class="voice-player" data-player-id="${playerId}">
+        <button class="voice-play-btn" data-action="play">▶️</button>
+        <div class="voice-waveform">${bars}</div>
+        <div class="voice-duration">0:00</div>
+        <audio data-voice-audio="${playerId}">
           <source src="${base64Audio}" type="audio/webm">
         </audio>
       </div>
       <div class="message-time">${new Date().toLocaleTimeString()}</div>
     `;
+    
+    // Setup audio controls
+    setTimeout(() => setupVoicePlayer(playerId), 0);
   } else {
     msgDiv.innerHTML = `
       <div>${text}</div>
@@ -2444,6 +2520,95 @@ function displayMessage(text, isSent) {
   
   chatMessages.appendChild(msgDiv);
   chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Setup custom voice player controls
+function setupVoicePlayer(playerId) {
+  const player = document.querySelector(`[data-player-id="${playerId}"]`);
+  if (!player) return;
+  
+  const audio = player.querySelector(`[data-voice-audio="${playerId}"]`);
+  const playBtn = player.querySelector('.voice-play-btn');
+  const durationEl = player.querySelector('.voice-duration');
+  const waveBars = player.querySelectorAll('.voice-wave-bar');
+  
+  let isPlaying = false;
+  let animationFrame = null;
+  
+  // Format time (seconds to mm:ss)
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+  
+  // Update waveform animation
+  const updateWaveform = () => {
+    if (!isPlaying || !audio.duration) return;
+    
+    const progress = audio.currentTime / audio.duration;
+    const activeBarCount = Math.floor(waveBars.length * progress);
+    
+    waveBars.forEach((bar, index) => {
+      if (index < activeBarCount) {
+        bar.classList.add('active');
+      } else {
+        bar.classList.remove('active');
+      }
+    });
+    
+    if (isPlaying) {
+      animationFrame = requestAnimationFrame(updateWaveform);
+    }
+  };
+  
+  // Play/Pause toggle
+  playBtn.addEventListener('click', () => {
+    if (isPlaying) {
+      audio.pause();
+      playBtn.textContent = '▶️';
+      isPlaying = false;
+      if (animationFrame) cancelAnimationFrame(animationFrame);
+    } else {
+      // Pause all other audio players
+      document.querySelectorAll('[data-voice-audio]').forEach(otherAudio => {
+        if (otherAudio !== audio && !otherAudio.paused) {
+          otherAudio.pause();
+          const otherPlayer = otherAudio.closest('.voice-player');
+          if (otherPlayer) {
+            otherPlayer.querySelector('.voice-play-btn').textContent = '▶️';
+            otherPlayer.querySelectorAll('.voice-wave-bar').forEach(bar => bar.classList.remove('active'));
+          }
+        }
+      });
+      
+      audio.play();
+      playBtn.textContent = '⏸️';
+      isPlaying = true;
+      updateWaveform();
+    }
+  });
+  
+  // Update duration display
+  audio.addEventListener('loadedmetadata', () => {
+    durationEl.textContent = formatTime(audio.duration);
+  });
+  
+  audio.addEventListener('timeupdate', () => {
+    durationEl.textContent = formatTime(audio.currentTime);
+  });
+  
+  // Reset on end
+  audio.addEventListener('ended', () => {
+    playBtn.textContent = '▶️';
+    isPlaying = false;
+    waveBars.forEach(bar => bar.classList.remove('active'));
+    durationEl.textContent = formatTime(audio.duration);
+    if (animationFrame) cancelAnimationFrame(animationFrame);
+  });
+  
+  // Prevent context menu (right-click download)
+  audio.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
 sendBtn.addEventListener('click', sendMessage);
