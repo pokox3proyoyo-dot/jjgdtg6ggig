@@ -1185,35 +1185,42 @@ a:focus-visible {
   }
 }
 
-/* Desktop Optimizations (>=768px) */
-@media (min-width: 769px) {
-  .container {
-    padding-bottom: 140px; /* Увеличиваем отступ для desktop */
-  }
-  
-  #chat-messages {
-    padding-bottom: 120px; /* Место для поля ввода */
-    max-height: 500px; /* Ограничиваем высоту для лучшего UX */
-  }
-  
-  .chat-input-area {
-    position: static !important; /* Убираем sticky на desktop */
-    padding: 20px;
-    background: rgba(0,0,0,0.2);
-    border-top: 1px solid rgba(255,255,255,0.1);
-    border-radius: 0 0 15px 15px;
-  }
-  
-  /* Улучшаем hover эффекты на desktop */
-  .chat-input-area:hover {
-    background: rgba(0,0,0,0.25);
-  }
-  
-  /* Desktop cursor effects */
-  button:hover, .card:hover {
-    transform: translateY(-2px);
-    transition: all 0.6s;
-  }
+/* Desktop устройства (НЕ мобильные) */
+.desktop-device .container {
+  padding-bottom: 140px; /* Увеличиваем отступ для desktop */
+}
+
+.desktop-device #chat-messages {
+  padding-bottom: 120px; /* Место для поля ввода */
+  max-height: 500px; /* Ограничиваем высоту для лучшего UX */
+}
+
+.desktop-device .chat-input-area {
+  position: static !important; /* Убираем sticky на desktop */
+  padding: 20px;
+  background: rgba(0,0,0,0.2);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  border-radius: 0 0 15px 15px;
+}
+
+/* Улучшаем hover эффекты на desktop */
+.desktop-device .chat-input-area:hover {
+  background: rgba(0,0,0,0.25);
+}
+
+/* Desktop cursor effects */
+.desktop-device button:hover, .desktop-device .card:hover {
+  transform: translateY(-2px);
+  transition: all 0.6s;
+}
+
+/* Мобильные устройства - оставляем sticky позиционирование */
+.mobile-device .chat-input-area {
+  position: sticky;
+  bottom: 0;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(10px);
 }
 
 /* Theme Toggle Button (in footer) */
@@ -2179,7 +2186,7 @@ const state = {
   roomId: null,
   userId: 'user_' + Math.random().toString(36).substr(2, 9),
   isHost: false,
-  isMobile: window.innerWidth <= 768,
+  isMobile: isMobileDevice(),
   participants: 0,
   peerOnline: false,
   peerLeft: false,
@@ -2199,15 +2206,65 @@ const state = {
   }
 };
 
+// Умное определение мобильного устройства
+function isMobileDevice() {
+  // Основные критерии для мобильных устройств
+  const userAgent = navigator.userAgent.toLowerCase();
+  const mobileKeywords = ['mobile', 'android', 'iphone', 'ipad', 'phone', 'tablet'];
+  
+  // Проверяем User Agent на наличие мобильных ключевых слов
+  const isMobileUA = mobileKeywords.some(keyword => userAgent.includes(keyword));
+  
+  // Проверяем сенсорные возможности
+  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  
+  // Проверяем размер экрана (более консервативный порог)
+  const isSmallScreen = window.innerWidth <= 768;
+  
+  // Проверяем соотношение сторон (портретная ориентация часто указывает на мобильное)
+  const isPortrait = window.innerHeight >= window.innerWidth;
+  
+  // Логика определения мобильного устройства
+  // Устройство считается мобильным если:
+  // 1. User Agent указывает на мобильное устройство ИЛИ
+  // 2. Есть сенсорный экран И маленький экран И портретная ориентация
+  const isMobile = isMobileUA || (hasTouch && isSmallScreen && isPortrait);
+  
+  // Логируем для отладки
+  console.log('📱 Mobile Detection:', {
+    userAgent: isMobileUA,
+    touch: hasTouch,
+    smallScreen: isSmallScreen,
+    portrait: isPortrait,
+    final: isMobile
+  });
+  
+  return isMobile;
+}
+
 // Mobile Detection and Responsive Behavior
 function checkMobile() {
-  state.isMobile = window.innerWidth <= 768;
+  state.isMobile = isMobileDevice();
+  
+  // Обновляем CSS класс для тела документа
+  document.body.classList.toggle('mobile-device', state.isMobile);
+  document.body.classList.toggle('desktop-device', !state.isMobile);
+  
+  // Логируем изменения
+  console.log('🔄 checkMobile():', {
+    isMobile: state.isMobile,
+    width: window.innerWidth,
+    height: window.innerHeight,
+    deviceClass: state.isMobile ? 'mobile-device' : 'desktop-device'
+  });
   
   if (state.isMobile && state.roomId) {
     // Auto-show room status indicator on mobile when in chat
-    document.getElementById('room-status-indicator').classList.add('show');
+    const indicator = document.getElementById('room-status-indicator');
+    if (indicator) indicator.classList.add('show');
   } else {
-    document.getElementById('room-status-indicator').classList.remove('show');
+    const indicator = document.getElementById('room-status-indicator');
+    if (indicator) indicator.classList.remove('show');
   }
 }
 
@@ -2319,7 +2376,15 @@ animateParticles();
 window.addEventListener('resize', () => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-  checkMobile();
+  // Принудительно обновляем определение мобильного устройства
+  setTimeout(() => {
+    checkMobile();
+    console.log('📱 Mobile Detection (resize):', {
+      width: window.innerWidth,
+      height: window.innerHeight,
+      isMobile: state.isMobile
+    });
+  }, 100);
 });
 
 // ============ NAVIGATION ============
@@ -3492,6 +3557,9 @@ function setupZoomPrevention() {
 // ============ INIT ============
 document.addEventListener('DOMContentLoaded', function() {
   console.log('Secure Hax Messenger initialized! 💬🔐');
+  
+  // Инициализируем определение мобильного устройства
+  checkMobile();
   console.log('Mobile mode:', state.isMobile ? 'ON' : 'OFF');
   
   // PWA инициализация
