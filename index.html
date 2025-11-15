@@ -121,7 +121,7 @@ button, .btn, input, textarea, a, [role="button"] {
 }
 
 h1 { margin-top: 24px; font-size: 2rem; color: var(--header-color); text-shadow: 0 2px 8px rgba(0,0,0,0.5); z-index: 100; position: relative;}
-.container { width: 90%; max-width: 800px; margin: 16px auto; padding-bottom: 50px; z-index: 100; position: relative;}
+.container { width: 90%; max-width: 800px; margin: 16px auto; padding-bottom: 120px; z-index: 100; position: relative;}
 .card { 
   background: var(--glass-bg); 
   border-radius: 16px; 
@@ -129,7 +129,7 @@ h1 { margin-top: 24px; font-size: 2rem; color: var(--header-color); text-shadow:
   margin-bottom: 16px; 
   box-shadow: 0 8px 20px rgba(0,0,0,0.4); 
   backdrop-filter: blur(4px); 
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.4s, box-shadow 0.4s;
   position: relative;
   overflow: hidden;
 }
@@ -171,7 +171,7 @@ textarea, input {
   color: #fff; 
   font-family: 'Roboto Mono', monospace; 
   font-size: 16px; /* Предотвращает zoom на iOS */
-  transition: all 0.3s;
+  transition: all 0.6s;
   touch-action: manipulation;
   
   /* Mobile оптимизации */
@@ -217,7 +217,7 @@ button {
   margin: 4px; 
   cursor: pointer; 
   font-weight: 600; 
-  transition: all 0.2s; 
+  transition: all 0.4s; 
   white-space: nowrap;
   position: relative;
   overflow: hidden;
@@ -240,7 +240,7 @@ button:focus-visible {
 /* Active состояние для touch */
 button:active { 
   transform: translateY(1px) scale(0.98);
-  transition: all 0.1s;
+  transition: all 0.3s;
 }
 
 /* Touch feedback */
@@ -386,7 +386,7 @@ button:active::after, .choice-btn:active::after, .game-btn:active::after {
   display: none;
   align-items: center;
   gap: 5px;
-  animation: fadeIn 0.3s;
+  animation: fadeIn 0.8s;
 }
 
 .typing-indicator.show {
@@ -398,11 +398,11 @@ button:active::after, .choice-btn:active::after, .game-btn:active::after {
   height: 8px;
   background: var(--accent-color);
   border-radius: 50%;
-  animation: typingBounce 1.4s infinite;
+  animation: typingBounce 2.5s infinite;
 }
 
 .typing-dot:nth-child(2) {
-  animation-delay: 0.2s;
+  animation-delay: 0.5s;
 }
 
 .typing-dot:nth-child(3) {
@@ -419,6 +419,7 @@ button:active::after, .choice-btn:active::after, .game-btn:active::after {
   max-height: 600px;
   overflow-y: auto;
   padding: 15px;
+  padding-bottom: 100px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -432,7 +433,7 @@ button:active::after, .choice-btn:active::after, .game-btn:active::after {
   padding: 10px 15px;
   border-radius: 15px;
   word-wrap: break-word;
-  animation: messageIn 0.3s;
+  animation: messageIn 1.0s;
 }
 
 @keyframes messageIn {
@@ -462,7 +463,7 @@ button:active::after, .choice-btn:active::after, .game-btn:active::after {
   align-items: center;
   justify-content: center;
   font-size: 16px;
-  transition: all 0.2s;
+  transition: all 0.4s;
   flex-shrink: 0;
 }
 
@@ -586,7 +587,7 @@ button:active::after, .choice-btn:active::after, .game-btn:active::after {
 
 #voice-btn.recording {
   background: #ff0000;
-  animation: recordPulse 1s infinite;
+  animation: recordPulse 2s infinite;
 }
 
 @keyframes recordPulse {
@@ -612,7 +613,7 @@ button:active::after, .choice-btn:active::after, .game-btn:active::after {
   background: rgba(255,255,255,0.1);
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.6s;
 }
 
 #room-code-display:hover {
@@ -652,7 +653,7 @@ button:active::after, .choice-btn:active::after, .game-btn:active::after {
   box-shadow: 0 8px 20px rgba(0,0,0,0.5);
   transform: translateX(-150%);
   opacity: 0;
-  transition: transform 0.3s ease-out, opacity 0.3s;
+  transition: transform 0.6s ease-out, opacity 0.6s;
 }
 #nav-menu.active {
   transform: translateX(0);
@@ -672,7 +673,7 @@ button:active::after, .choice-btn:active::after, .game-btn:active::after {
 .page {
   display: none;
   width: 100%;
-  animation: fadeIn 0.5s;
+  animation: fadeIn 0.8s;
 }
 .page.active { display: block; }
 
@@ -690,7 +691,7 @@ button:active::after, .choice-btn:active::after, .game-btn:active::after {
   width: 50px; height: 50px;
   cursor: pointer;
   border-radius: 50%;
-  transition: all 0.3s;
+  transition: all 0.6s;
   box-shadow: 0 0 10px rgba(255,255,255,0.3);
   animation: float 3s ease-in-out infinite;
 }
@@ -735,7 +736,7 @@ button:active::after, .choice-btn:active::after, .game-btn:active::after {
   opacity: 0;
   transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
   text-align: center;
-  animation: rainbow 2s linear infinite;
+  animation: rainbow 3s linear infinite;
 }
 #socks-message.active {
   transform: translate(-50%, -50%) scale(1);
@@ -797,7 +798,7 @@ button:active::after, .choice-btn:active::after, .game-btn:active::after {
   box-shadow:0 4px 12px rgba(0,0,0,0.5); 
   backdrop-filter: blur(5px); 
   font-weight:500; 
-  transition: all 0.3s; 
+  transition: all 0.6s; 
   opacity:0; 
   transform: translateX(100px);
   border-left: 4px solid var(--accent-color);
@@ -827,7 +828,7 @@ footer {
 a { 
   color: var(--accent-color); 
   text-decoration: none; 
-  transition: all 0.2s;
+  transition: all 0.4s;
   touch-action: manipulation;
   min-height: 44px;
   display: inline-flex;
@@ -1024,7 +1025,7 @@ a:focus-visible {
     height: 12px;
     border-radius: 50%;
     background: #ff5aab;
-    animation: pulse 2s infinite;
+    animation: pulse 3s infinite;
     box-shadow: 0 0 8px rgba(255,90,171,0.6);
     flex-shrink: 0;
   }
@@ -1184,6 +1185,37 @@ a:focus-visible {
   }
 }
 
+/* Desktop Optimizations (>=768px) */
+@media (min-width: 769px) {
+  .container {
+    padding-bottom: 140px; /* Увеличиваем отступ для desktop */
+  }
+  
+  #chat-messages {
+    padding-bottom: 120px; /* Место для поля ввода */
+    max-height: 500px; /* Ограничиваем высоту для лучшего UX */
+  }
+  
+  .chat-input-area {
+    position: static !important; /* Убираем sticky на desktop */
+    padding: 20px;
+    background: rgba(0,0,0,0.2);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    border-radius: 0 0 15px 15px;
+  }
+  
+  /* Улучшаем hover эффекты на desktop */
+  .chat-input-area:hover {
+    background: rgba(0,0,0,0.25);
+  }
+  
+  /* Desktop cursor effects */
+  button:hover, .card:hover {
+    transform: translateY(-2px);
+    transition: all 0.6s;
+  }
+}
+
 /* Theme Toggle Button (in footer) */
 #theme-toggle {
   width: 50px;
@@ -1195,7 +1227,7 @@ a:focus-visible {
   justify-content: center;
   box-shadow: 0 4px 20px rgba(255,90,171,0.5);
   background: var(--button-gradient);
-  transition: all 0.3s;
+  transition: all 0.6s;
   border: none;
   cursor: pointer;
   color: white;
@@ -1391,7 +1423,7 @@ a:focus-visible {
   border: none;
   color: var(--text-color);
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.6s;
 }
 
 .close-game:hover {
@@ -1437,7 +1469,7 @@ a:focus-visible {
   cursor: pointer;
   font-size: 1.1rem;
   font-weight: 600;
-  transition: all 0.3s;
+  transition: all 0.6s;
   min-width: 120px;
 }
 
@@ -1478,7 +1510,7 @@ a:focus-visible {
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.6s;
   min-width: 120px;
 }
 
@@ -1547,7 +1579,7 @@ a:focus-visible {
   height: 150px;
   object-fit: cover;
   border-radius: 15px;
-  transition: all 0.3s;
+  transition: all 0.6s;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
@@ -1560,7 +1592,7 @@ a:focus-visible {
 @media (hover: none) and (pointer: coarse) {
   .homepage-image:active {
     transform: scale(0.98);
-    transition: transform 0.1s ease;
+    transition: transform 0.3s ease;
   }
 }
 
@@ -1660,8 +1692,8 @@ body::after {
 }
 
 /* Разные задержки для последовательного появления */
-.scroll-reveal:nth-child(1) { transition-delay: 0.1s; }
-.scroll-reveal:nth-child(2) { transition-delay: 0.2s; }
+.scroll-reveal:nth-child(1) { transition-delay: 0.3s; }
+.scroll-reveal:nth-child(2) { transition-delay: 0.5s; }
 .scroll-reveal:nth-child(3) { transition-delay: 0.3s; }
 .scroll-reveal:nth-child(4) { transition-delay: 0.4s; }
 .scroll-reveal:nth-child(5) { transition-delay: 0.5s; }
@@ -1708,7 +1740,7 @@ body::after {
 /* Производительность анимаций */
 @media (max-width: 768px) {
   * {
-    animation-duration: 0.2s !important;
+    animation-duration: 0.5s !important;
     transition-duration: 0.2s !important;
   }
   
@@ -1802,7 +1834,7 @@ body {
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: white;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: spin 1.5s linear infinite;
 }
 
 @keyframes spin {
