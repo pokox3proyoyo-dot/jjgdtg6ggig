@@ -1203,6 +1203,11 @@ a:focus-visible {
   border-radius: 0 0 15px 15px;
 }
 
+/* Отключаем keyboard-open эффект на desktop */
+.desktop-device.keyboard-open .chat-input-area {
+  transform: none !important;
+}
+
 /* Улучшаем hover эффекты на desktop */
 .desktop-device .chat-input-area:hover {
   background: rgba(0,0,0,0.25);
@@ -3462,16 +3467,20 @@ function setupKeyboardOptimization() {
     }, 300); // Даем время клавиатуре появиться
   });
   
-  // При фокусе добавляем класс для оптимизации
+  // При фокусе добавляем класс для оптимизации (только для мобильных)
   chatInput.addEventListener('focus', () => {
-    document.body.classList.add('keyboard-open');
-    document.documentElement.style.setProperty('--keyboard-height', '300px');
+    if (state.isMobile) {
+      document.body.classList.add('keyboard-open');
+      document.documentElement.style.setProperty('--keyboard-height', '300px');
+    }
   });
   
-  // При потере фокуса убираем оптимизацию
+  // При потере фокуса убираем оптимизацию (только для мобильных)
   chatInput.addEventListener('blur', () => {
-    document.body.classList.remove('keyboard-open');
-    document.documentElement.style.setProperty('--keyboard-height', '0px');
+    if (state.isMobile) {
+      document.body.classList.remove('keyboard-open');
+      document.documentElement.style.setProperty('--keyboard-height', '0px');
+    }
   });
   
   // Отключаем zoom на focus для iOS
