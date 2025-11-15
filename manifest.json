@@ -1,0 +1,101 @@
+{
+  "name": "Secure Hax Messenger",
+  "short_name": "Secure Hax",
+  "description": "Безопасный мессенджер с end-to-end шифрованием в реальном времени",
+  "start_url": "/secure-hax-messenger-CUSTOM-VOICE.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#ff5aab",
+  "background_color": "#2c003e",
+  "scope": "/",
+  "lang": "ru",
+  "categories": ["social", "communication", "productivity"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💬</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' fill='%23ff5aab' rx='20'/><text x='48' y='62' text-anchor='middle' font-size='48' fill='white'>💬</text></svg>",
+      "sizes": "96x96",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%23ff5aab' rx='40'/><text x='96' y='124' text-anchor='middle' font-size='96' fill='white'>💬</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%23ff5aab' rx='100'/><text x='256' y='330' text-anchor='middle' font-size='256' fill='white'>💬</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect width='540' height='720' fill='%232c003e'/><rect x='20' y='80' width='500' height='60' fill='%23ff5aab' rx='30'/><text x='270' y='120' text-anchor='middle' font-size='32' fill='white' font-family='Arial'>💬 Secure Hax</text><rect x='40' y='200' width='300' height='80' fill='%23ffffff' rx='20' opacity='0.1'/><text x='190' y='245' text-anchor='middle' font-size='16' fill='white' font-family='Arial'>Привет! Как дела?</text></svg>",
+      "sizes": "540x720",
+      "type": "image/svg+xml",
+      "form_factor": "narrow",
+      "label": "Главный экран чата"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Создать комнату",
+      "short_name": "Создать",
+      "description": "Быстро создать новую комнату для чата",
+      "url": "/secure-hax-messenger-CUSTOM-VOICE.html#create-room",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' fill='%234CAF50' rx='20'/><text x='48' y='62' text-anchor='middle' font-size='48' fill='white'>🆕</text></svg>",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Присоединиться",
+      "short_name": "Войти",
+      "description": "Подключиться к существующей комнате",
+      "url": "/secure-hax-messenger-CUSTOM-VOICE.html#join-room",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' fill='%232196f3' rx='20'/><text x='48' y='62' text-anchor='middle' font-size='48' fill='white'>🚪</text></svg>",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "share_target": {
+    "action": "/secure-hax-messenger-CUSTOM-VOICE.html",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "file_handlers": [
+    {
+      "action": "/secure-hax-messenger-CUSTOM-VOICE.html",
+      "accept": {
+        "text/plain": [".txt"],
+        "application/json": [".json"]
+      }
+    }
+  ],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
+}
