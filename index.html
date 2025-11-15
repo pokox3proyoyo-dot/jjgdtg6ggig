@@ -2,9 +2,22 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Secure Hax Messenger 💬🔐</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff5aab">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Secure Hax">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="Secure Hax Messenger">
+<meta name="description" content="Безопасный мессенджер с end-to-end шифрованием в реальном времени">
+<meta name="keywords" content="messenger, secure, encrypted, chat, privacy, pwa">
+<meta property="og:title" content="Secure Hax Messenger">
+<meta property="og:description" content="Безопасный мессенджер с end-to-end шифрованием">
+<meta property="og:type" content="website">
+<meta property="og:image" content="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%23ff5aab' rx='100'/><text x='256' y='330' text-anchor='middle' font-size='256' fill='white'>💬</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <style>
@@ -19,7 +32,22 @@
   --mobile-breakpoint: 768px;
 }
 
-* { box-sizing: border-box; }
+* { 
+  box-sizing: border-box; 
+  /* Touch оптимизация - убираем нежелательные выделения */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+html {
+  /* Safe area поддержка для устройств с вырезами */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
 
 body {
   font-family: 'Inter', sans-serif;
@@ -33,6 +61,55 @@ body {
   transition: background 0.3s ease;
   position: relative;
   overflow-x: hidden;
+  
+  /* Mobile-first оптимизации */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Touch-action оптимизация для всех интерактивных элементов */
+button, .btn, input, textarea, a, [role="button"] {
+  touch-action: manipulation;
+  min-height: 44px; /* Минимальный размер для touch targets */
+  min-width: 44px;
+}
+
+/* Убираем hover эффекты на touch устройствах */
+@media (hover: none) and (pointer: coarse) {
+  button:hover, .card:hover, a:hover {
+    transform: none !important;
+    box-shadow: inherit !important;
+    filter: none !important;
+  }
+  
+  button:hover::before, .card:hover::before {
+    opacity: 0 !important;
+  }
+}
+
+/* Ripple эффект для кнопок */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.ripple:active::before {
+  width: 200px;
+  height: 200px;
 }
 
 #particle-canvas {
@@ -66,25 +143,69 @@ h1 { margin-top: 24px; font-size: 2rem; color: var(--header-color); text-shadow:
   transition: opacity 0.3s;
   z-index: -1;
 }
-.card:hover::before { opacity: 1; }
-.card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,0,0,0.6);}
+
+/* Заменяем hover на focus-visible */
+.card:focus-visible::before { opacity: 1; }
+.card:focus-visible { 
+  transform: translateY(-2px); 
+  box-shadow: 0 12px 24px rgba(0,0,0,0.6);
+  outline: 2px solid rgba(255, 90, 171, 0.5);
+  outline-offset: 2px;
+}
+
+/* Touch feedback для карточек */
+@media (hover: none) and (pointer: coarse) {
+  .card:active {
+    transform: translateY(1px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+  }
+}
 
 textarea, input { 
   width: 100%; 
   margin: 6px 0; 
-  padding: 10px; 
+  padding: 12px 16px; 
   border-radius: 10px; 
   border: none; 
   background: rgba(255,255,255,0.2); 
   color: #fff; 
   font-family: 'Roboto Mono', monospace; 
-  font-size: 0.95rem;
+  font-size: 16px; /* Предотвращает zoom на iOS */
   transition: all 0.3s;
+  touch-action: manipulation;
+  
+  /* Mobile оптимизации */
+  -webkit-appearance: none;
+  appearance: none;
+  
+  /* Минимальная высота для лучшего touch */
+  min-height: 44px;
 }
+
 textarea:focus, input:focus { 
   outline: none; 
   background: rgba(255,255,255,0.25); 
   box-shadow: 0 0 15px rgba(255,90,171,0.5);
+  border: 2px solid rgba(255,90,171,0.3);
+}
+
+/* Active состояние для input */
+textarea:active, input:active {
+  background: rgba(255,255,255,0.3);
+}
+
+/* Специальные стили для чат инпута */
+#chat-input {
+  position: relative;
+  z-index: 10;
+  margin: 0;
+  padding: 12px 16px;
+  min-height: 44px;
+  font-size: 16px; /* Предотвращает zoom на iOS */
+  border-radius: 25px;
+  
+  /* Избегаем наложения с виртуальной клавиатурой */
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
 }
 
 button { 
@@ -92,7 +213,7 @@ button {
   color: #fff; 
   border: none; 
   border-radius: 12px; 
-  padding: 12px 18px; 
+  padding: 14px 20px; 
   margin: 4px; 
   cursor: pointer; 
   font-weight: 600; 
@@ -100,17 +221,139 @@ button {
   white-space: nowrap;
   position: relative;
   overflow: hidden;
+  touch-action: manipulation;
+  
+  /* Минимальный размер для touch devices */
+  min-height: 44px;
+  min-width: 44px;
 }
-button:hover { 
-  background: linear-gradient(90deg, #ff75c4, #a64ddb); 
-  transform: translateY(-3px); 
+
+/* Заменяем hover на focus-visible для accessibility */
+button:focus-visible { 
+  outline: 2px solid rgba(255, 90, 171, 0.8);
+  outline-offset: 2px;
+  transform: translateY(-2px); 
   box-shadow: 0 8px 20px rgba(0,0,0,0.5); 
   filter: brightness(1.1);
 }
+
+/* Active состояние для touch */
+button:active { 
+  transform: translateY(1px) scale(0.98);
+  transition: all 0.1s;
+}
+
+/* Touch feedback */
+@media (hover: none) and (pointer: coarse) {
+  button:active {
+    background: linear-gradient(90deg, #ff75c4, #a64ddb);
+    transform: translateY(1px) scale(0.95);
+  }
+}
+
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+  filter: none;
+}
+
+/* Ripple эффект применяем ко всем кнопкам */
+button, .choice-btn, .game-btn, #send-btn, #voice-btn, #theme-toggle {
+  position: relative;
+  overflow: hidden;
+}
+
+button::after, .choice-btn::after, .game-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease, height 0.3s ease;
+  pointer-events: none;
+}
+
+button:active::after, .choice-btn:active::after, .game-btn:active::after {
+  width: 200px;
+  height: 200px;
+}
+
+/* Touch active состояние */
+.touch-active {
+  transform: scale(0.95);
+  filter: brightness(0.9);
+  transition: all 0.1s ease;
+}
+
+/* Keyboard open состояние */
+.keyboard-open {
+  --keyboard-height: 300px;
+}
+
+.keyboard-open .container {
+  padding-bottom: calc(80px + var(--keyboard-height, 0px) + env(safe-area-inset-bottom, 0px));
+}
+
+.keyboard-open .chat-input-area {
+  transform: translateY(calc(-1 * var(--keyboard-height, 0px)));
+  transition: transform 0.3s ease;
+}
+
+/* CSS переменные для динамических значений */
+:root {
+  --keyboard-height: 0px;
+  --safe-area-inset-bottom: 0px;
+  --safe-area-inset-top: 0px;
+  --safe-area-inset-left: 0px;
+  --safe-area-inset-right: 0px;
+}
+
+/* Вычисляем safe-area значения */
+@supports (padding: max(0px)) {
+  :root {
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-left: env(safe-area-inset-left, 0px);
+    --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  }
+}
+
+/* CSS для предотвращения text selection на мобильных */
+@media (max-width: 768px) {
+  button, .btn, [role="button"] {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  
+  /* Но разрешаем selection для текстовых элементов */
+  textarea, input, [contenteditable] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+}
+
+/* Оптимизация для устройств с высоким DPI */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  #sans-image {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Темная тема оптимизации */
+@media (prefers-color-scheme: dark) {
+  .card {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  input, textarea {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
 }
 
 .row { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
@@ -226,6 +469,20 @@ button:disabled {
 .voice-play-btn:hover {
   background: rgba(255,255,255,0.3);
   transform: scale(1.05);
+}
+
+/* Touch-friendly voice player */
+.voice-play-btn:focus-visible {
+  outline: 2px solid rgba(255, 90, 171, 0.8);
+  outline-offset: 2px;
+  transform: scale(1.05);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .voice-play-btn:active {
+    background: rgba(255,255,255,0.4);
+    transform: scale(0.9);
+  }
 }
 
 .voice-play-btn:active {
@@ -567,8 +824,34 @@ footer {
   align-items: center;
   gap: 20px;
 }
-a { color: var(--accent-color); text-decoration: none; transition: all 0.2s;}
-a:hover { color: #fff; transform: scale(1.1);}
+a { 
+  color: var(--accent-color); 
+  text-decoration: none; 
+  transition: all 0.2s;
+  touch-action: manipulation;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Заменяем hover на focus-visible для ссылок */
+a:focus-visible { 
+  color: #fff; 
+  transform: scale(1.1);
+  outline: 2px solid rgba(255, 90, 171, 0.8);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  a:active {
+    color: #fff;
+    transform: scale(0.95);
+    background: rgba(255, 90, 171, 0.1);
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+}
 
 .rainbow-mode {
   animation: rainbowBg 5s linear infinite;
@@ -578,63 +861,139 @@ a:hover { color: #fff; transform: scale(1.1);}
   100% { filter: hue-rotate(360deg); }
 }
 
+/* Touch-Friendly элементы */
+.touch-friendly {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 12px 16px;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+/* Voice player оптимизации */
+.voice-play-btn {
+  touch-action: manipulation;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+}
+
+/* Navigation menu улучшения */
+#menu-btn, #nav-menu button {
+  touch-action: manipulation;
+  min-height: 44px;
+}
+
+/* Extra padding для кликабельных областей */
+.choice-btn, .game-btn {
+  touch-action: manipulation;
+  min-height: 48px;
+  padding: 14px 24px;
+  font-size: 1.1rem;
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
   h1 {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     margin-top: 16px;
+    padding-top: env(safe-area-inset-top, 0px);
   }
   
   .container {
     width: 95%;
     margin: 12px auto;
-    padding-bottom: 80px;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    
+    /* Безопасные зоны для устройств с вырезами */
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
   }
   
   .card {
     padding: 16px;
     margin-bottom: 12px;
     border-radius: 12px;
+    
+    /* Touch-friendly */
+    touch-action: manipulation;
   }
   
   #menu-btn {
-    top: 10px;
-    left: 10px;
+    top: calc(10px + env(safe-area-inset-top, 0px));
+    left: calc(10px + env(safe-area-inset-left, 0px));
     min-width: 80px;
     height: 45px;
     font-size: 1rem;
+    z-index: 2000;
   }
   
   #nav-menu {
-    top: 60px;
-    left: 10px;
+    top: calc(60px + env(safe-area-inset-top, 0px));
+    left: calc(10px + env(safe-area-inset-left, 0px));
     padding: 12px;
+    backdrop-filter: blur(15px);
   }
   
   #nav-menu button {
     width: 140px;
-    padding: 8px 12px;
+    padding: 12px 16px;
+    min-height: 44px;
+    touch-action: manipulation;
   }
   
   #chat-messages {
     padding: 12px;
     min-height: 300px;
-    max-height: 500px;
+    max-height: 50vh; /* Ограничиваем высоту для лучшего UX */
+    -webkit-overflow-scrolling: touch;
   }
   
   .message {
     max-width: 85%;
-    padding: 8px 12px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
   }
   
   .chat-input-area {
     padding: 12px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(10px);
+    
+    /* Фиксируем внизу экрана */
+    position: sticky;
+    bottom: 0;
+    
+    /* Safe area для устройств с вырезами */
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+  
+  #chat-input {
+    font-size: 16px; /* Предотвращает zoom на iOS */
+    min-height: 44px;
+    padding: 12px 16px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  }
+  
+  #send-btn, #voice-btn {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    margin: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    touch-action: manipulation;
   }
   
   /* Room Status Indicator */
   .room-status-indicator {
     position: fixed;
-    top: 12px;
+    top: calc(12px + env(safe-area-inset-top, 0px));
     left: 50%;
     transform: translateX(-50%);
     z-index: 2001;
@@ -649,6 +1008,10 @@ a:hover { color: #fff; transform: scale(1.1);}
     transition: all 0.3s ease;
     opacity: 0;
     pointer-events: none;
+    
+    /* Безопасные зоны */
+    padding-left: max(16px, calc(16px + env(safe-area-inset-left)));
+    padding-right: max(16px, calc(16px + env(safe-area-inset-right)));
   }
   
   .room-status-indicator.show {
@@ -663,6 +1026,7 @@ a:hover { color: #fff; transform: scale(1.1);}
     background: #ff5aab;
     animation: pulse 2s infinite;
     box-shadow: 0 0 8px rgba(255,90,171,0.6);
+    flex-shrink: 0;
   }
   
   .room-status-ball.online {
@@ -691,63 +1055,132 @@ a:hover { color: #fff; transform: scale(1.1);}
   /* Mobile Footer */
   footer {
     margin: 16px 0;
-    padding-bottom: 30px;
+    padding-bottom: calc(30px + env(safe-area-inset-bottom, 0px));
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
   
   .footer-links {
     gap: 15px;
+    touch-action: manipulation;
   }
   
   #sans-image {
     width: 40px;
     height: 40px;
+    touch-action: manipulation;
+    min-height: 44px;
+    min-width: 44px;
   }
   
   /* Better mobile scrolling */
   .page {
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
   
   /* Mobile toast positioning */
   #toast-container {
-    top: 15px;
-    right: 15px;
-    left: 15px;
+    top: calc(15px + env(safe-area-inset-top, 0px));
+    right: max(15px, env(safe-area-inset-right, 0px));
+    left: max(15px, env(safe-area-inset-left, 0px));
+    z-index: 10000;
   }
   
   .toast {
     margin-top: 5px;
+    touch-action: manipulation;
+    padding: 14px 18px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
   }
 }
 
 /* Extra small screens */
 @media (max-width: 480px) {
+  h1 {
+    font-size: 1.4rem;
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+  
   .container {
     width: 98%;
     margin: 8px auto;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
   
   .card {
-    padding: 12px;
+    padding: 14px;
     border-radius: 10px;
+    margin-bottom: 10px;
   }
   
-  h1 {
-    font-size: 1.3rem;
+  button {
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    min-height: 44px;
   }
   
   #send-btn, #voice-btn {
-    width: 45px;
-    height: 45px;
+    width: 48px;
+    height: 48px;
     font-size: 1.1rem;
+  }
+  
+  #chat-input {
+    font-size: 16px; /* Предотвращает zoom */
+    padding: 12px 16px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  }
+  
+  .choice-btn, .game-btn {
+    padding: 14px 20px;
+    font-size: 1rem;
+    min-height: 48px;
+    min-width: 120px;
   }
   
   .room-status-indicator {
     padding: 6px 12px;
+    border-radius: 20px;
   }
   
   .room-name {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
+  }
+  
+  .participants-count {
+    font-size: 0.75rem;
+  }
+  
+  .voice-player {
+    min-width: 180px;
+    max-width: 250px;
+    padding: 8px;
+  }
+  
+  .voice-play-btn {
+    width: 40px;
+    height: 40px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  /* Sans button optimization */
+  #sans-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+  }
+  
+  #sans-image {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 
@@ -771,6 +1204,12 @@ a:hover { color: #fff; transform: scale(1.1);}
 #theme-toggle:hover {
   transform: translateY(-3px) scale(1.1);
   box-shadow: 0 8px 25px rgba(255,90,171,0.7);
+}
+
+#theme-toggle:focus-visible {
+  outline: 2px solid rgba(255, 90, 171, 0.8);
+  outline-offset: 2px;
+  transform: translateY(-2px) scale(1.05);
 }
 
 /* HACKER THEME - Matrix Style */
@@ -1009,6 +1448,15 @@ a:hover { color: #fff; transform: scale(1.1);}
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
+/* Touch optimization для choice-btn */
+@media (hover: none) and (pointer: coarse) {
+  .choice-btn:active {
+    background: var(--button-gradient);
+    color: #fff;
+    transform: translateY(1px) scale(0.95);
+  }
+}
+
 .choice-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -1048,6 +1496,13 @@ a:hover { color: #fff; transform: scale(1.1);}
 .game-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Touch optimization для game-btn */
+@media (hover: none) and (pointer: coarse) {
+  .game-btn:active {
+    transform: translateY(1px) scale(0.95);
+  }
 }
 
 .timer {
@@ -1099,6 +1554,14 @@ a:hover { color: #fff; transform: scale(1.1);}
 .homepage-image:hover {
   transform: scale(1.05);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Touch optimization для изображений */
+@media (hover: none) and (pointer: coarse) {
+  .homepage-image:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
 }
 
 /* Mobile responsive for new elements */
@@ -1238,6 +1701,198 @@ body::after {
 .scroll-reveal-scale.revealed {
   opacity: 1;
   transform: scale(1);
+}
+
+/* Финальные мобильные улучшения */
+
+/* Производительность анимаций */
+@media (max-width: 768px) {
+  * {
+    animation-duration: 0.2s !important;
+    transition-duration: 0.2s !important;
+  }
+  
+  /* Упрощенные анимации для мобильных */
+  .card, button, .choice-btn, .game-btn {
+    transition: transform 0.15s ease;
+  }
+  
+  .page {
+    animation: fadeIn 0.3s ease-out;
+  }
+}
+
+/* Предотвращение overscroll на мобильных */
+body {
+  overscroll-behavior: contain;
+}
+
+.page {
+  overscroll-behavior: contain;
+}
+
+/* Улучшенный scroll для мобильных */
+@media (max-width: 768px) {
+  #chat-messages {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+  }
+}
+
+/* Оптимизация для landscape ориентации */
+@media (max-width: 768px) and (orientation: landscape) {
+  .container {
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  }
+  
+  #chat-messages {
+    max-height: 40vh;
+  }
+  
+  .card {
+    padding: 12px;
+  }
+  
+  h1 {
+    font-size: 1.4rem;
+    margin-top: 8px;
+  }
+}
+
+/* Специальные стили для очень больших экранов */
+@media (min-width: 1200px) {
+  .container {
+    max-width: 900px;
+  }
+  
+  .card {
+    padding: 24px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .card {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+  
+  button, #menu-btn, #nav-menu, footer {
+    display: none !important;
+  }
+}
+
+/* Анимация загрузки для PWA */
+.loading {
+  opacity: 0.7;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Touch capable optimizations */
+.touch-capable {
+  /* Дополнительные touch оптимизации для устройств с поддержкой касаний */
+}
+
+.touch-capable button,
+.touch-capable .choice-btn,
+.touch-capable .game-btn {
+  /* Убираем outline на мобильных для чистого вида */
+}
+
+.touch-capable button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* No touch optimizations - возвращаем hover эффекты */
+.no-touch button:hover,
+.no-touch .choice-btn:hover,
+.no-touch .game-btn:hover {
+  background: linear-gradient(90deg, #ff75c4, #a64ddb);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+  filter: brightness(1.1);
+}
+
+.no-touch .card:hover::before {
+  opacity: 1;
+}
+
+.no-touch .card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.6);
+}
+
+.no-touch a:hover {
+  color: #fff;
+  transform: scale(1.1);
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .card {
+    border: 2px solid var(--accent-color);
+  }
+  
+  button {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* Focus indicators для keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* Skip to main content link для accessibility */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--accent-color);
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 10000;
+}
+
+.skip-link:focus {
+  top: 6px;
 }
 </style>
 </head>
@@ -2655,10 +3310,167 @@ document.getElementById('manual-gen').addEventListener('click', () => {
   createConfetti(30);
 });
 
+// ============ PWA и MOBILE ОПТИМИЗАЦИИ ============
+
+// Регистрация Service Worker для PWA функциональности
+async function registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js', {
+        scope: '/'
+      });
+      
+      console.log('✅ Service Worker зарегистрирован:', registration.scope);
+      
+      // Обновление Service Worker
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        console.log('🔄 Новая версия Service Worker загружается...');
+        
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            console.log('🚀 Новая версия приложения доступна!');
+            showToast('🔄 Обновление готово! Перезагрузите страницу.', 5000);
+          }
+        });
+      });
+      
+      // Прослушиваем сообщения от Service Worker
+      navigator.serviceWorker.addEventListener('message', event => {
+        console.log('📨 Сообщение от SW:', event.data);
+      });
+      
+    } catch (error) {
+      console.log('❌ Ошибка регистрации Service Worker:', error);
+    }
+  } else {
+    console.log('❌ Service Worker не поддерживается');
+  }
+}
+
+// Оптимизация для работы с виртуальной клавиатурой
+function setupKeyboardOptimization() {
+  const chatInput = document.getElementById('chat-input');
+  
+  if (!chatInput) return;
+  
+  // Фокус на input - сдвигаем viewport
+  chatInput.addEventListener('focus', () => {
+    setTimeout(() => {
+      chatInput.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'nearest'
+      });
+    }, 300); // Даем время клавиатуре появиться
+  });
+  
+  // При фокусе добавляем класс для оптимизации
+  chatInput.addEventListener('focus', () => {
+    document.body.classList.add('keyboard-open');
+    document.documentElement.style.setProperty('--keyboard-height', '300px');
+  });
+  
+  // При потере фокуса убираем оптимизацию
+  chatInput.addEventListener('blur', () => {
+    document.body.classList.remove('keyboard-open');
+    document.documentElement.style.setProperty('--keyboard-height', '0px');
+  });
+  
+  // Отключаем zoom на focus для iOS
+  chatInput.addEventListener('touchstart', () => {
+    document.body.style.zoom = '1';
+    setTimeout(() => {
+      document.body.style.zoom = '';
+    }, 500);
+  });
+}
+
+// Улучшения для touch устройств
+function setupTouchOptimizations() {
+  // Отключаем context menu на long press
+  document.addEventListener('contextmenu', (e) => {
+    if (state.isMobile) {
+      e.preventDefault();
+    }
+  });
+  
+  // Touch feedback для кнопок
+  document.addEventListener('touchstart', (e) => {
+    const target = e.target.closest('button, .btn, [role="button"]');
+    if (target) {
+      target.classList.add('touch-active');
+    }
+  }, { passive: true });
+  
+  document.addEventListener('touchend', (e) => {
+    const target = e.target.closest('button, .btn, [role="button"]');
+    if (target) {
+      setTimeout(() => {
+        target.classList.remove('touch-active');
+      }, 150);
+    }
+  }, { passive: true });
+  
+  // Отключаем pull-to-refresh на мобильных
+  if (state.isMobile) {
+    let startY = 0;
+    document.addEventListener('touchstart', (e) => {
+      startY = e.touches[0].clientY;
+    });
+    
+    document.addEventListener('touchmove', (e) => {
+      const currentY = e.touches[0].clientY;
+      const scrollTop = window.pageYOffset;
+      
+      // Отключаем pull-to-refresh только в чате
+      if (scrollTop <= 0 && currentY > startY && state.activePage === 'chat') {
+        e.preventDefault();
+      }
+    });
+  }
+}
+
+// Обработка изменения ориентации
+function setupOrientationHandler() {
+  window.addEventListener('orientationchange', () => {
+    setTimeout(() => {
+      checkMobile();
+      // Пересчитываем высоты элементов
+      const chatMessages = document.getElementById('chat-messages');
+      if (chatMessages && state.activePage === 'chat') {
+        chatMessages.style.maxHeight = window.innerHeight * 0.5 + 'px';
+      }
+    }, 500); // Даем время на смену ориентации
+  });
+}
+
+// Функция для предотвращения accidental zoom
+function setupZoomPrevention() {
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', (event) => {
+    const now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) {
+      event.preventDefault();
+    }
+    lastTouchEnd = now;
+  }, false);
+}
+
 // ============ INIT ============
 document.addEventListener('DOMContentLoaded', function() {
   console.log('Secure Hax Messenger initialized! 💬🔐');
   console.log('Mobile mode:', state.isMobile ? 'ON' : 'OFF');
+  
+  // PWA инициализация
+  registerServiceWorker();
+  
+  // Mobile оптимизации
+  setupKeyboardOptimization();
+  setupTouchOptimizations();
+  setupOrientationHandler();
+  setupZoomPrevention();
+  
   showPage('home');
   checkMobile();
   loadTheme(); // Load saved theme
@@ -2694,12 +3506,28 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
   
-  // Page visibility and mobile optimizations
+  // Page visibility и мобильные оптимизации
   document.addEventListener('visibilitychange', () => {
     checkMobile();
     if (document.visibilityState === 'visible') {
       setTimeout(checkMobile, 100);
     }
+  });
+
+  // PWA обработчики
+  window.addEventListener('beforeinstallprompt', (e) => {
+    console.log('📱 PWA может быть установлена');
+    e.preventDefault();
+    // Сохраняем событие для позднего использования
+    window.deferredPrompt = e;
+    
+    // Показываем пользователю возможность установки
+    showToast('📱 Нажмите "Добавить на главный экран" для установки приложения!', 5000);
+  });
+
+  window.addEventListener('appinstalled', (e) => {
+    console.log('✅ PWA установлена успешно');
+    showToast('🎉 Secure Hax Messenger установлен как приложение!');
   });
 
   window.addEventListener('beforeunload', () => {
@@ -2708,6 +3536,53 @@ document.addEventListener('DOMContentLoaded', function() {
       set(ref(db, `rooms/${state.roomId}/${userPath}/online`), false);
     }
   });
+
+  // Touch gesture обработчики для лучшего UX
+  let touchStartY = 0;
+  let touchStartX = 0;
+  
+  document.addEventListener('touchstart', (e) => {
+    touchStartY = e.touches[0].clientY;
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+  
+  document.addEventListener('touchend', (e) => {
+    const touchEndY = e.changedTouches[0].clientY;
+    const touchEndX = e.changedTouches[0].clientX;
+    const deltaY = touchEndY - touchStartY;
+    const deltaX = touchEndX - touchStartX;
+    
+    // Detected swipe gestures для навигации (если нужно)
+    if (Math.abs(deltaY) < 50 && Math.abs(deltaX) > 100) {
+      if (deltaX > 50 && state.activePage === 'chat') {
+        // Swipe right - показать меню
+        toggleMenu();
+      }
+    }
+  }, { passive: true });
+
+  // Добавляем CSS классы для определения touch возможностей
+  const isTouchCapable = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  if (isTouchCapable) {
+    document.body.classList.add('touch-capable');
+  } else {
+    document.body.classList.add('no-touch');
+  }
+
+  // Устанавливаем оптимальные значения для CSS переменных
+  const setCSSVariables = () => {
+    const root = document.documentElement;
+    
+    // Safe area значения
+    root.style.setProperty('--safe-area-inset-bottom', 
+      getComputedStyle(document.body).getPropertyValue('padding-bottom'));
+    
+    // Висота клавиатуры (по умолчанию)
+    root.style.setProperty('--keyboard-height', '0px');
+  };
+
+  setCSSVariables();
+  window.addEventListener('resize', setCSSVariables);
 });
 </script>
 </body>
